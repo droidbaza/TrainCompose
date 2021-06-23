@@ -5,6 +5,7 @@ import com.droidbaza.data.model.MetaPage
 import com.droidbaza.data.repositories.LoadResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 data class PageData<T : Any>(
     val items: List<T> = emptyList(),
@@ -13,9 +14,8 @@ data class PageData<T : Any>(
 
 abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
 
-    var isLastPage: Boolean = false
-    var page: Long = 1L
-    var target: Long = 0L
+    private var isLastPage: Boolean = false
+    private var page: Long = 1L
 
     val pageItems by lazy {
         mutableListOf<T>()
@@ -30,7 +30,7 @@ abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
         MutableStateFlow(PageData())
     }
 
-    val newsState: MutableStateFlow<PageData<T>> get() = _pagesList
+    val newsState: StateFlow<PageData<T>> get() = _pagesList
 
     fun onResultLoading(result: LoadResult<Pair<MetaPage, List<T>>>) {
         result.apply {
@@ -51,10 +51,10 @@ abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
 
     open fun onRestart() {
         if (job?.isActive == true) return
-        target = 0L
         page = 1L
         isLastPage = false
         pageItems.clear()
+        _pagesList.value = PageData()
         onTryNext(page)
     }
 
@@ -66,7 +66,7 @@ abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
         }
     }
 
-    fun onTryNext(page: Long) {
+    open fun onTryNext(page: Long) {
         if (job?.isActive == true) return
         if (!isLastPage) {
             onJobRequestPage(page)
@@ -75,11 +75,12 @@ abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
         }
     }
 
-    private fun onHandleError(error: Int) {
+    open fun onHandleError(error: Int) {
         liveError.value = error
     }
 
     private fun onHandlePage(page: List<T>) {
+        if (liveError.value != null) liveError.value = null
         _pagesList.value = PageData(page)
     }
 

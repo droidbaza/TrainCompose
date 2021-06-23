@@ -3,6 +3,7 @@ package com.droidbaza.traincompose.components.main
 import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Scaffold
@@ -29,6 +30,7 @@ import com.droidbaza.traincompose.components.profile.ProfileViewModel
 import com.droidbaza.traincompose.ui.theme.TrainComposeTheme
 import com.google.android.libraries.maps.MapView
 
+@ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
 fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
@@ -98,6 +100,7 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
     }
 }
 
+@ExperimentalFoundationApi
 fun NavGraphBuilder.mainCore(
     onBackPressed: () -> Unit,
     state: LazyListState,

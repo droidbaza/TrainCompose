@@ -25,6 +25,7 @@ class MoviesRepositoryImpl @Inject constructor(private val apiMovies: ApiMovies)
                 } else null
 
                 if (meta != null && model != null) {
+                    model.forEachIndexed { index, movie ->movie.pageMeta ="page №${meta.pageNumber}|$index" }
                     LoadResult.Success(Pair(meta, model))
                 } else {
                     LoadResult.Error(500, "body is empty")
