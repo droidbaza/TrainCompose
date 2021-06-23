@@ -1,2 +1,3 @@
 rootProject.name = "TrainCompose"
 include ':app'
+include ':data'

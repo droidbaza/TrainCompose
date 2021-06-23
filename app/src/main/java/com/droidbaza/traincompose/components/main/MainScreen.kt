@@ -3,6 +3,8 @@ package com.droidbaza.traincompose.components.main
 import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +36,7 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
     val homeViewModel: HomeViewModel = hiltViewModel()
     val mapViewModel: MapViewModel = hiltViewModel()
     val mapView: MapView = rememberMapViewWithLifecycle()
+    val parentState = rememberLazyListState()
 
     TrainComposeTheme {
         val skipIntro = viewModel.newsState.collectAsState()
@@ -74,6 +77,7 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
 
                     mainCore(
                         onBackPressed,
+                        parentState,
                         homeViewModel,
                         profileViewModel,
                         skipIntro,
@@ -96,6 +100,7 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
 
 fun NavGraphBuilder.mainCore(
     onBackPressed: () -> Unit,
+    state: LazyListState,
     homeViewModel: HomeViewModel,
     profileViewModel: ProfileViewModel,
     onboardingComplete: State<Boolean>, // https://issuetracker.google.com/174783110
@@ -109,7 +114,7 @@ fun NavGraphBuilder.mainCore(
             }
         }
         if (onboardingComplete.value) { // Avoid glitch when showing onboarding
-            HomeScreen(homeViewModel)
+            HomeScreen(homeViewModel, state)
         }
     }
     composable(Screen.Search.route) {

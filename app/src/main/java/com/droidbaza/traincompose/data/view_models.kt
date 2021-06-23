@@ -9,3 +9,4 @@ data class NewsItem(
 )
 
 data class LatestData(val articles: List<NewsItem>, val next: String)
+

@@ -1,60 +1,55 @@
 package com.droidbaza.traincompose.components.home
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.droidbaza.traincompose.data.NewsItem
+import com.droidbaza.data.model.Movie
+import com.google.accompanist.coil.rememberCoilPainter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(homeViewModel: HomeViewModel,state: LazyListState) {
     MaterialTheme {
         Scaffold(
             topBar = {
                 TopAppBar(title = { Text(text = "Pagination with Compose") })
             }) {
-            LazyNewsItems(viewModel = viewModel)
+            LazyNewsItems(homeViewModel,state)
         }
     }
 }
 
 @Composable
-fun LazyNewsItems(viewModel: HomeViewModel) {
-    val coroutineScope = rememberCoroutineScope()
-    val state = viewModel.newsState.collectAsState()
-    val lastIndex = state.value.articles.lastIndex
-    val parentState = rememberLazyListState()
-   // parentState.withSnap(coroutineScope)
+fun LazyNewsItems(homeViewModel: HomeViewModel,state: LazyListState) {
+    val movies = homeViewModel.newsState.collectAsState()
+    val lastIndex = movies.value.items.lastIndex
 
+    // parentState.withSnap(coroutineScope)
+    Log.d("VALUES", " state ${movies.value.items.size}")
+    LazyColumn(state = state) {
+        itemsIndexed(
+            movies.value.items,
+            itemContent = { i: Int, movie: Movie ->
 
-    LazyColumn(state = parentState) {
-        itemsIndexed(state.value.articles,
-            itemContent = { i: Int, newsItem: NewsItem ->
+                MovieCard(movie = movie)
                 if (lastIndex == i) {
-                    viewModel.getMoreNews()
+                    homeViewModel.onNextPage {
+
+                    }
                 }
-                Spacer(modifier = Modifier.size(16.dp))
-                Text(
-                    text = "${newsItem.title}",
-                    Modifier.padding(4.dp),
-                    style = MaterialTheme.typography.overline,
-                    color = MaterialTheme.colors.onSurface,
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                val childState = rememberLazyListState()
-               // childState.withSnap(coroutineScope)
-                LazyRow(state = childState) {
+                //val childState = rememberLazyListState()
+                // childState.withSnap(coroutineScope)
+                /*LazyRow(state = childState) {
                     itemsIndexed(state.value.articles,
                         itemContent = { i: Int, newsItem: NewsItem ->
                             if (lastIndex == i) {
@@ -65,12 +60,40 @@ fun LazyNewsItems(viewModel: HomeViewModel) {
                             }
                         })
 
-                }
+                }*/
                 // childState.snap(coroutineScope)
 
             })
     }
     //  parentState.snap(coroutineScope)
+}
+
+@Composable
+fun MovieCard(movie: Movie) {
+    Card(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Image(
+                painter = rememberCoilPainter(request = movie.posterPath),
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .height(80.dp)
+                    .fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+            Text(
+                text = "${movie.name}",
+                Modifier.padding(4.dp),
+                style = MaterialTheme.typography.overline,
+                color = MaterialTheme.colors.onSurface,
+            )
+            Spacer(modifier = Modifier.size(4.dp))
+        }
+    }
 }
 
 fun LazyListState.withSnap(coroutineScope: CoroutineScope) {
