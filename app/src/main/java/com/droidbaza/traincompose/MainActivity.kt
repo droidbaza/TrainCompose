@@ -8,6 +8,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import com.droidbaza.traincompose.components.main.MainScreen
 import com.droidbaza.traincompose.components.main.MainViewModel
+import com.google.accompanist.insets.ProvideWindowInsets
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -21,8 +22,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            //IntelliJSplashScreen()
-            MainScreen(viewModel = viewModel) {
+            ProvideWindowInsets(consumeWindowInsets = false) {
+                //IntelliJSplashScreen()
+                MainScreen(viewModel = viewModel) {
+                }
             }
         }
 

@@ -1,12 +1,17 @@
 package com.droidbaza.traincompose.components.main
 
 import android.util.Log
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -33,13 +38,14 @@ import com.google.android.libraries.maps.MapView
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
+fun MainScreen(viewModel: MainViewModel,onBackPressed: () -> Unit) {
+
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val homeViewModel: HomeViewModel = hiltViewModel()
     val mapViewModel: MapViewModel = hiltViewModel()
     val mapView: MapView = rememberMapViewWithLifecycle()
     val parentState = rememberLazyListState()
-
+    val scaffoldState: ScaffoldState = rememberScaffoldState()
     TrainComposeTheme {
         val skipIntro = viewModel.newsState.collectAsState()
         val navController = rememberNavController()
@@ -48,9 +54,14 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
         var start = "intro"
         Log.d("ROTTTT", "$route")
         Scaffold(
+            scaffoldState = scaffoldState,
             bottomBar = {
                 if (skipIntro.value) {
-                    if (route == "intro" || route == "login") return@Scaffold
+                    BottomBar(
+                        navController
+                    )
+                }else{
+                    if(route=="intro"||route=="login")return@Scaffold
                     BottomBar(
                         navController
                     )
@@ -61,7 +72,6 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
             NavHost(navController, startDestination = start) {
                 if (!skipIntro.value) {
                     composable("intro") {
-
                         OnBoardingScreen {
                             viewModel.login()
                             navController.navigate("main") {
@@ -70,13 +80,9 @@ fun MainScreen(viewModel: MainViewModel, onBackPressed: () -> Unit) {
                                 launchSingleTop = true
                             }
                         }
-
-
                     }
                 }
-
                 navigation(route = "main", startDestination = Screen.Home.route) {
-
                     mainCore(
                         onBackPressed,
                         parentState,
@@ -110,15 +116,7 @@ fun NavGraphBuilder.mainCore(
     navController: NavHostController
 ) {
     composable(Screen.Home.route) { from ->
-        // Show onboarding instead if not shown yet.
-        LaunchedEffect(onboardingComplete) {
-            if (!onboardingComplete.value) {
-                // navController.navigate("intro")
-            }
-        }
-        if (onboardingComplete.value) { // Avoid glitch when showing onboarding
-            HomeScreen(homeViewModel, state)
-        }
+        HomeScreen(homeViewModel, state)
     }
     composable(Screen.Search.route) {
         //  MapScreen(mapViewModel, mapView)
