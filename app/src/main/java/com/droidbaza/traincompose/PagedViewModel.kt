@@ -7,41 +7,31 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-data class PageData<T : Any>(
-    val items: List<T> = emptyList(),
-    val hash: Int = items.hashCode()
-)
-
-abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
+abstract class PagedViewModel<T : Any>() : ViewModel() {
 
     private var isLastPage: Boolean = false
     private var page: Long = 1L
-
-    val pageItems by lazy {
-        mutableListOf<T>()
-    }
-
     var job: Job? = null
 
-    val liveError: MutableStateFlow<Int?> by lazy {
+    private val _errorState: MutableStateFlow<Int?> by lazy {
         MutableStateFlow(null)
     }
-    private val _pagesList: MutableStateFlow<PageData<T>> by lazy {
-        MutableStateFlow(PageData())
-    }
+    val errorState: StateFlow<Int?> get() = _errorState
 
-    val newsState: StateFlow<PageData<T>> get() = _pagesList
+    private val _itemsState: MutableStateFlow<List<T>> by lazy {
+        MutableStateFlow(emptyList())
+    }
+    val itemsState: StateFlow<List<T>> get() = _itemsState
 
     fun onResultLoading(result: LoadResult<Pair<MetaPage, List<T>>>) {
         result.apply {
             onSuccess {
-                pageItems.addAll(it.second)
                 it.first.apply {
                     page = pageNumber
                     isLastPage = isLast
                     if (!isLastPage) page += 1
                 }
-                onHandlePage(pageItems)
+                onHandlePage(it.second)
             }
             onError {
                 onHandleError(it)
@@ -53,9 +43,13 @@ abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
         if (job?.isActive == true) return
         page = 1L
         isLastPage = false
-        pageItems.clear()
-        _pagesList.value = PageData()
+        onReset()
         onTryNext(page)
+    }
+
+    fun onReset() {
+        _itemsState.value = emptyList()
+        _errorState.value = null
     }
 
     fun onRefresh(isRestart: Boolean = true) {
@@ -71,24 +65,24 @@ abstract class ViewModelPageProgress<T : Any>() : ViewModel() {
         if (!isLastPage) {
             onJobRequestPage(page)
         } else {
-            onHandlePage(pageItems)
+            onHandlePage()
         }
     }
 
     open fun onHandleError(error: Int) {
-        liveError.value = error
+        _errorState.value = error
     }
 
-    private fun onHandlePage(page: List<T>) {
-        if (liveError.value != null) liveError.value = null
-        _pagesList.value = PageData(page)
+    private fun onHandlePage(page: List<T>? = null) {
+        if (_errorState.value != null) _errorState.value = null
+        _itemsState.value = _itemsState.value + (page ?: emptyList())
     }
 
     abstract fun onJobRequestPage(nextPage: Long)
 
-    fun onNextPage(inProgress: (Boolean) -> Unit) {
+    fun onNextPage(inProgress: ((Boolean) -> Unit)? = null) {
         if (!isLastPage) {
-            inProgress(true)
+            inProgress?.invoke(true)
             onTryNext(page)
         }
     }

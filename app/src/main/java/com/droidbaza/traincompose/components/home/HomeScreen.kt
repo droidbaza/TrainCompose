@@ -1,6 +1,5 @@
 package com.droidbaza.traincompose.components.home
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -10,6 +9,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -21,59 +21,68 @@ import kotlinx.coroutines.launch
 
 @ExperimentalFoundationApi
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel,state: LazyListState) {
+fun HomeScreen(homeViewModel: HomeViewModel, state: LazyListState) {
     MaterialTheme {
         Scaffold(
             topBar = {
                 TopAppBar(title = { Text(text = "Pagination with Compose") })
             }) {
-            LazyNewsItems(homeViewModel,state)
+            LazyMovieItems(homeViewModel, state)
         }
+    }
+}
+
+inline fun <T : Any> List<T>.isReadyForNext(
+    currentIndex: Int,
+    readyItemPosition: Int = 10,
+    loadNext: () -> Unit
+) {
+    if (lastIndex - readyItemPosition == currentIndex) {
+        loadNext()
     }
 }
 
 @ExperimentalFoundationApi
 @Composable
-fun LazyNewsItems(homeViewModel: HomeViewModel,state: LazyListState) {
-    val movies = homeViewModel.newsState.collectAsState()
-    val lastIndex = movies.value.items.lastIndex
-    val error = homeViewModel.liveError.collectAsState()
+fun LazyMovieItems(viewModel: HomeViewModel, state: LazyListState) {
+    val itemsState = viewModel.itemsState.collectAsState()
+    val error = viewModel.errorState.collectAsState()
+    val items = itemsState.value
+    val scope = rememberCoroutineScope()
+    state.withSnap(scope)
 
-    // parentState.withSnap(coroutineScope)
-    Log.d("VALUES", " state ${movies.value.items.size}")
     Box(modifier = Modifier.fillMaxHeight()) {
-        LazyColumn(state = state, modifier = Modifier.padding(bottom = 56.dp)) {
+        LazyColumn(
+            state = state,
+            modifier = Modifier.padding(bottom = 56.dp),
+        ) {
             itemsIndexed(
-                movies.value.items,
+                items,
                 itemContent = { i: Int, movie: Movie ->
                     MovieCard(movie = movie)
-                    if (lastIndex - 10 == i) {
-                        homeViewModel.onNextPage {
+                    items.isReadyForNext(
+                        currentIndex = i,
+                        loadNext = {
+                            viewModel.onNextPage()
                         }
-                    }
-                    //val childState = rememberLazyListState()
-                    // childState.withSnap(coroutineScope)
-                    /*LazyRow(state = childState) {
-                        itemsIndexed(state.value.articles,
-                            itemContent = { i: Int, newsItem: NewsItem ->
-                                if (lastIndex == i) {
-                                    viewModel.getMoreNews()
-                                }
-                                NewsCard(newsItem) {
-                                    viewModel.onSelectedNews(newsItem)
-                                }
-                            })
-
-                    }*/
-                    // childState.snap(coroutineScope)
-
+                    )
                 })
         }
+
+        Row {
+            Button(onClick = { viewModel.onReset() }) {
+                Text(text = "clear")
+            }
+            Button(onClick = { viewModel.onRestart() }) {
+                Text(text = "restart")
+            }
+        }
+
 
         if (error.value != null) {
             Snackbar(
                 action = {
-                    Button(onClick = { homeViewModel.onRefresh(false) }) {
+                    Button(onClick = { viewModel.onRefresh(false) }) {
                         Text("Retry")
                     }
                 },
@@ -122,6 +131,7 @@ fun MovieCard(movie: Movie) {
         }
     }
 }
+
 
 fun LazyListState.withSnap(coroutineScope: CoroutineScope) {
     if (!isScrollInProgress && firstVisibleItemScrollOffset != 0) {
