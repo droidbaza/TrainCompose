@@ -175,8 +175,7 @@ fun MusicScreenDetails(id: Int, goDetails: (id: Int) -> Unit) {
 
 
 @Composable
-fun MoviesScreen(goDetails: (Movie) -> Unit, goBack: () -> Unit) {
-    val viewModel = hiltViewModel<MoviesViewModel>()
+fun MoviesScreen(viewModel: MoviesViewModel,goDetails: (Movie) -> Unit, goBack: () -> Unit) {
     val itemsState = viewModel.itemsState.collectAsState()
     val error = viewModel.errorState.collectAsState()
     val loading = viewModel.loading.collectAsState()

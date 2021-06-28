@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.droidbaza.traincompose.R
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.MapView
@@ -23,7 +24,8 @@ import com.google.android.libraries.maps.model.LatLng
 import com.google.android.libraries.maps.model.MarkerOptions
 
 @Composable
-fun MapScreen(viewModel: MapViewModel,mapView: MapView) {
+fun MapScreen(mapView: MapView) {
+    val viewModel = hiltViewModel<MapViewModel>()
     Surface(color = MaterialTheme.colors.background) {
 
         val currentLocation = viewModel.location.collectAsState()

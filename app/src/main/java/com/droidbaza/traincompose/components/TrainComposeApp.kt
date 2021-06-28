@@ -9,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.droidbaza.traincompose.components.*
 import com.droidbaza.traincompose.components.Destiny.*
+import com.droidbaza.traincompose.components.map.MapScreen
+import com.droidbaza.traincompose.components.map.rememberMapViewWithLifecycle
+import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
 
 
 @Composable
@@ -89,6 +93,8 @@ fun BottomNavigationBar(navController: NavController) {
 fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
     val startDestination = Home.route
     val router = remember(navController) { Router(navController, startDestination) }
+    val mapView = rememberMapViewWithLifecycle()
+    val moviesViewModel = hiltViewModel<MoviesViewModel>()
 
     NavHost(navController, startDestination = startDestination) {
         composable(Intro.route) {
@@ -115,15 +121,13 @@ fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
         }
         composable(Movies.route) {
             MoviesScreen(
+                moviesViewModel,
                 goBack = router.goBack,
                 goDetails = router.goMoviesDetails
             )
         }
         composable(Books.route) {
-            BooksScreen(
-                goBack = router.goBack,
-                goDetails = router.goBooksDetails
-            )
+            MapScreen(mapView = mapView)
         }
         composable(Profile.route) {
             ProfileScreen(
