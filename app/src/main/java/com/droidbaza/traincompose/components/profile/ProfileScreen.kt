@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.droidbaza.traincompose.components.viewmodels.ProfileViewModel
 import com.google.accompanist.coil.rememberCoilPainter
 
 private const val testImageUrl =

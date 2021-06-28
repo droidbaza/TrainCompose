@@ -6,116 +6,123 @@ import androidx.annotation.DrawableRes
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import com.droidbaza.traincompose.R
-import com.droidbaza.traincompose.components.Routes.ARGS_HOME_DETAILS
-import com.droidbaza.traincompose.components.Routes.ARGS_MOVIE_DETAILS
-import com.droidbaza.traincompose.components.Routes.ARGS_MUSIC_DETAILS
-import com.droidbaza.traincompose.components.Routes.ARGS_PROFILE_DETAILS
 import com.droidbaza.traincompose.components.Routes.ROUTE_BOOKS
+import com.droidbaza.traincompose.components.Routes.ROUTE_BOOKS_DETAILS
 import com.droidbaza.traincompose.components.Routes.ROUTE_HOME
 import com.droidbaza.traincompose.components.Routes.ROUTE_HOME_DETAILS
+import com.droidbaza.traincompose.components.Routes.ROUTE_INTRO
 import com.droidbaza.traincompose.components.Routes.ROUTE_MOVIES
 import com.droidbaza.traincompose.components.Routes.ROUTE_MOVIE_DETAILS
 import com.droidbaza.traincompose.components.Routes.ROUTE_MUSIC
 import com.droidbaza.traincompose.components.Routes.ROUTE_MUSIC_DETAILS
 import com.droidbaza.traincompose.components.Routes.ROUTE_PROFILE
 import com.droidbaza.traincompose.components.Routes.ROUTE_PROFILE_DETAILS
+import com.droidbaza.traincompose.components.Routes.ROUTE_SPLASH
 
 object Routes {
-
     const val ROUTE_HOME = "home"
-    const val ARGS_HOME = "args_home"
-
-    const val ROUTE_HOME_DETAILS = "main_details"
-    const val ARGS_HOME_DETAILS = "args_home_details"
-
+    const val ROUTE_HOME_DETAILS = "home details"
     const val ROUTE_MOVIES = "movies"
-    const val ARGS_MOVIES = "args_movies"
-
-    const val ROUTE_MOVIE_DETAILS = "movies_details"
-    const val ARGS_MOVIE_DETAILS = "args_movies_details"
-
+    const val ROUTE_MOVIE_DETAILS = "movies details"
     const val ROUTE_BOOKS = "books"
-    const val ARGS_BOOKS = "args_books"
-
-    const val ROUTE_BOOKS_DETAILS = "books_details"
-    const val ARGS_BOOKS_DETAILS = "args_books_details"
-
+    const val ROUTE_BOOKS_DETAILS = "books details"
     const val ROUTE_PROFILE = "profile"
-    const val ARGS_PROFILE = "args_profile"
-
     const val ROUTE_MUSIC = "music"
-    const val ARGS_MUSIC = "args_music"
-
-    const val ROUTE_MUSIC_DETAILS = "music_details"
-    const val ARGS_MUSIC_DETAILS = "args_music_details"
-
-    const val ROUTE_PROFILE_DETAILS = "profile_details"
-    const val ARGS_PROFILE_DETAILS = "args_profile_details"
-
+    const val ROUTE_MUSIC_DETAILS = "music details"
+    const val ROUTE_PROFILE_DETAILS = "profile details"
+    const val ROUTE_INTRO = "intro"
+    const val ROUTE_SPLASH="splash"
 }
 
-sealed class Screen(val route: String, val title: String, @DrawableRes val icon: Int) {
-    object Home : Screen(route = ROUTE_HOME, title = "Home", icon = R.drawable.ic_home)
-    object Music : Screen(route = ROUTE_MUSIC, title = "Search", icon = R.drawable.ic_search)
-    object Movies : Screen(route = ROUTE_MOVIES, title = "Favourites", icon = R.drawable.ic_star)
-    object Books : Screen(route = ROUTE_BOOKS, title = "Favourites", icon = R.drawable.ic_star)
-    object Profile : Screen(route = ROUTE_PROFILE, title = "Profile", icon = R.drawable.ic_profile)
+sealed class Destiny(val route: String, var tag: String = route,val title: String="", @DrawableRes val icon: Int = 0) {
+    //bottom bar destinies
+    object Home : Destiny(route = ROUTE_HOME, title = "Home", icon = R.drawable.ic_home)
+    object Music : Destiny(route = ROUTE_MUSIC, title = "Music", icon = R.drawable.ic_search)
+    object Movies : Destiny(route = ROUTE_MOVIES, title = "Movies", icon = R.drawable.ic_star)
+    object Books : Destiny(route = ROUTE_BOOKS, title = "Books", icon = R.drawable.ic_star)
+    object Profile : Destiny(route = ROUTE_PROFILE, title = "Profile", icon = R.drawable.ic_profile)
+   // details screen destinies
+    object HomeDetails : Destiny(route = ROUTE_HOME_DETAILS)
+    object MusicDetails : Destiny(route = ROUTE_MUSIC_DETAILS)
+    object MoviesDetails : Destiny(route = ROUTE_MOVIE_DETAILS)
+    object BooksDetails : Destiny(route = ROUTE_BOOKS_DETAILS)
+    object ProfileDetails : Destiny(route = ROUTE_PROFILE_DETAILS)
+    object Intro:Destiny(route = ROUTE_INTRO)
+    object Splash:Destiny(route = ROUTE_SPLASH)
 }
-
 
 class Router(val navHostController: NavHostController, startDestination: String = ROUTE_HOME) {
 
     val goMoviesDetails: (arg: Any?) -> Unit = {
-        putArgs(it, ARGS_MOVIE_DETAILS)
-        navigate(ROUTE_MOVIE_DETAILS)
+        checkArgsAndNavigate(it, Destiny.MoviesDetails)
     }
 
     val goHomeDetails: (arg: Any?) -> Unit = {
-        putArgs(it, ARGS_HOME_DETAILS)
-        navigate(ROUTE_HOME_DETAILS)
+        checkArgsAndNavigate(it, Destiny.HomeDetails)
     }
 
     val goBooksDetails: (arg: Any?) -> Unit = {
-        putArgs(it, ARGS_MOVIE_DETAILS)
-        navigate(ROUTE_MOVIE_DETAILS)
+        checkArgsAndNavigate(it, Destiny.BooksDetails)
     }
 
     val goProfileDetails: (arg: Any?) -> Unit = {
-        putArgs(it, ARGS_PROFILE_DETAILS)
-        navigate(ROUTE_PROFILE_DETAILS)
+        checkArgsAndNavigate(it, Destiny.ProfileDetails)
     }
 
     val goMusicDetails: (arg: Any?) -> Unit = {
-        putArgs(it, ARGS_MUSIC_DETAILS)
-        navigate(ROUTE_MUSIC_DETAILS)
+        checkArgsAndNavigate(it, Destiny.MusicDetails)
+    }
+
+    val goIntro:()->Unit = {
+        navigate(Destiny.Intro.route,true)
+    }
+
+    val goSplash:()->Unit={
+        navigate(Destiny.Splash.route,true)
+    }
+    val goHome:()->Unit={
+        navigate(Destiny.Home.route,removeFromHistory = true,singleTop = true)
     }
 
     val goBack: () -> Unit = {
         navHostController.apply {
             if (isLifecycleResumed()) {
                 navigateUp()
-                navigate(startDestination) {
-                    restoreState = false
+                navigate(startDestination){
                     launchSingleTop = true
-                }
-            }
-        }
-    }
-
-    private fun navigate(route: String) {
-        navHostController.apply {
-            if (isLifecycleResumed()) {
-                navigate(route) {
                     restoreState = true
                 }
             }
         }
     }
 
-    private fun putArgs(it: Any?, key: String) {
-        if (it != null) {
-            navHostController.putArgs(Pair(key, it))
+    private fun navigate(route: String,removeFromHistory:Boolean = false,singleTop:Boolean = false) {
+        navHostController.apply {
+            if (isLifecycleResumed()) {
+                navigate(route) {
+                    if(removeFromHistory){
+                        if(singleTop){
+                            popUpTo(Destiny.Home.route)
+                        }else{
+                            popUpTo(0){
+                                saveState = false
+                            }
+                        }
+
+                    }else{
+                        restoreState = true
+                    }
+                    launchSingleTop = singleTop
+                }
+            }
         }
+    }
+
+    private fun checkArgsAndNavigate(it: Any?, destiny: Destiny) {
+        if (it != null) {
+            navHostController.putArgs(Pair(destiny.tag, it))
+        }
+        navigate(destiny.route)
     }
 
     inline fun <reified T : Any> getArgs(tag: String): T? {

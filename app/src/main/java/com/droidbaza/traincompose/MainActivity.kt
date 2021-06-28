@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.droidbaza.traincompose.components.main.MainScreen
+import com.droidbaza.traincompose.components.MainScreen
 
 import com.droidbaza.traincompose.ui.theme.TrainComposeTheme
 import dagger.hilt.android.AndroidEntryPoint

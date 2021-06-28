@@ -1,4 +1,4 @@
-package com.droidbaza.traincompose.components.home
+package com.droidbaza.traincompose.components.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.droidbaza.data.model.Movie

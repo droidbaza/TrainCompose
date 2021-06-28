@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.droidbaza.data.model.Movie
 import com.droidbaza.traincompose.components.home.LazyMovieItems
-import com.droidbaza.traincompose.components.home.MoviesViewModel
+import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
 import kotlin.random.Random
 
 @Composable
@@ -73,7 +73,7 @@ fun HomeScreenDetails(id: Int, goDetails: (id: Int) -> Unit) {
 
 @Composable
 fun MusicScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit) {
-    BackHandler() {
+    BackHandler {
         goBack()
     }
     Column(
@@ -100,7 +100,7 @@ fun MusicScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit) {
 
 @Composable
 fun IntroScreen(goBack: () -> Unit) {
-    BackHandler() {
+    BackHandler {
         goBack()
     }
     Column(
@@ -126,7 +126,7 @@ fun IntroScreen(goBack: () -> Unit) {
 
 @Composable
 fun SplashScreen(goBack: () -> Unit) {
-    BackHandler() {
+    BackHandler {
         goBack()
     }
     Column(
@@ -181,7 +181,7 @@ fun MoviesScreen(goDetails: (Movie) -> Unit, goBack: () -> Unit) {
     val error = viewModel.errorState.collectAsState()
     val loading = viewModel.loading.collectAsState()
 
-    BackHandler() {
+    BackHandler {
         goBack()
     }
     Column(
@@ -237,7 +237,7 @@ fun MoviesScreenDetails(movie: Movie?, goDetails: (Movie) -> Unit) {
 
 @Composable
 fun BooksScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit) {
-    BackHandler() {
+    BackHandler {
         goBack()
     }
     Column(
@@ -286,7 +286,7 @@ fun BooksScreenDetails(id: Int, goDetails: (id: Int) -> Unit) {
 
 @Composable
 fun ProfileScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit) {
-    BackHandler() {
+    BackHandler {
         goBack()
     }
     Column(

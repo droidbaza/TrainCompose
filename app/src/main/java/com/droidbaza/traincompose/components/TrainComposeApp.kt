@@ -1,4 +1,4 @@
-package com.droidbaza.traincompose.components.main
+package com.droidbaza.traincompose.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.droidbaza.traincompose.components.*
+import com.droidbaza.traincompose.components.Destiny.*
 
 
 @Composable
@@ -41,27 +42,27 @@ fun MainScreen(finish: () -> Unit) {
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    val items = listOf(
-        Screen.Home,
-        Screen.Music,
-        Screen.Movies,
-        Screen.Books,
-        Screen.Profile
+    val tabs = listOf(
+       Home,
+       Music,
+        Movies,
+        Books,
+        Profile
     )
     BottomNavigation(
         backgroundColor = Color.Black,
         contentColor = Color.White
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route ?: Routes.ROUTE_HOME
+        val currentRoute = navBackStackEntry?.destination?.route ?: Home.route
 
-        items.forEach { item ->
+        tabs.forEach { item ->
             BottomNavigationItem(
                 icon = { Icon(painterResource(id = item.icon), contentDescription = item.title) },
                 label = { Text(text = item.title) },
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.White.copy(0.4f),
-                alwaysShowLabel = true,
+                alwaysShowLabel = false,
                 selected = currentRoute.contains(item.route),
                 onClick = {
                     if (!currentRoute.contains(item.route)) {
@@ -75,6 +76,7 @@ fun BottomNavigationBar(navController: NavController) {
                             }
                         }
                     } else {
+                        navController.navigateUp()
                         navController.popBackStack(item.route, false)
                     }
                 }
@@ -85,70 +87,78 @@ fun BottomNavigationBar(navController: NavController) {
 
 @Composable
 fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
-    val startDestination = Routes.ROUTE_HOME
+    val startDestination = Home.route
     val router = remember(navController) { Router(navController, startDestination) }
 
     NavHost(navController, startDestination = startDestination) {
-        composable("intro") { IntroScreen(goBack = { navController.popBackStack() }) }
-        composable("splash") { SplashScreen(goBack = { navController.navigate("core") }) }
-        composable(Routes.ROUTE_HOME) {
+        composable(Intro.route) {
+            IntroScreen(
+                goBack = router.goHome
+            )
+        }
+        composable(Splash.route) {
+            SplashScreen(
+                goBack = router.goIntro
+            )
+        }
+        composable(Home.route) {
             HomeScreen(
                 goDetails = router.goHomeDetails,
                 goBack = finish
             )
         }
-        composable(Routes.ROUTE_MUSIC) {
+        composable(Music.route) {
             MusicScreen(
                 goBack = router.goBack,
                 goDetails = router.goMusicDetails
             )
         }
-        composable(Routes.ROUTE_MOVIES) {
+        composable(Movies.route) {
             MoviesScreen(
                 goBack = router.goBack,
                 goDetails = router.goMoviesDetails
             )
         }
-        composable(Routes.ROUTE_BOOKS) {
+        composable(Books.route) {
             BooksScreen(
                 goBack = router.goBack,
                 goDetails = router.goBooksDetails
             )
         }
-        composable(Routes.ROUTE_PROFILE) {
+        composable(Profile.route) {
             ProfileScreen(
                 goBack = router.goBack,
                 goDetails = router.goProfileDetails
             )
         }
-        composable(Routes.ROUTE_HOME_DETAILS) {
+        composable(HomeDetails.route) {
             HomeScreenDetails(
-                id = router.getArgs(Routes.ARGS_HOME_DETAILS) ?: 0,
+                id = router.getArgs(HomeDetails.tag) ?: 0,
                 goDetails = router.goHomeDetails
             )
         }
-        composable(Routes.ROUTE_PROFILE_DETAILS) {
+        composable(ProfileDetails.route) {
             ProfileScreenDetails(
-                id = router.getArgs(Routes.ARGS_PROFILE_DETAILS) ?: 0,
+                id = router.getArgs(ProfileDetails.tag) ?: 0,
                 goDetails = router.goProfileDetails
             )
 
         }
-        composable(Routes.ROUTE_MUSIC_DETAILS) {
+        composable(MusicDetails.route) {
             MusicScreenDetails(
-                id = router.getArgs(Routes.ARGS_MUSIC_DETAILS) ?: 0,
+                id = router.getArgs(MusicDetails.tag) ?: 0,
                 goDetails = router.goMusicDetails
             )
         }
-        composable(Routes.ROUTE_BOOKS_DETAILS) {
+        composable(BooksDetails.route) {
             BooksScreenDetails(
-                id = router.getArgs(Routes.ARGS_BOOKS_DETAILS) ?: 0,
+                id = router.getArgs(BooksDetails.tag) ?: 0,
                 goDetails = router.goBooksDetails
             )
         }
-        composable(Routes.ROUTE_MOVIE_DETAILS) {
+        composable(MoviesDetails.route) {
             MoviesScreenDetails(
-                movie = router.getArgs(Routes.ARGS_MOVIE_DETAILS),
+                movie = router.getArgs(MoviesDetails.tag),
                 goDetails = router.goMoviesDetails
             )
         }

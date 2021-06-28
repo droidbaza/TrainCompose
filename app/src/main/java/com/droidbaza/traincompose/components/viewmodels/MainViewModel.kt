@@ -1,21 +1,21 @@
-package com.droidbaza.traincompose.components.profile
+package com.droidbaza.traincompose.components.viewmodels
 
 import androidx.lifecycle.ViewModel
-import com.droidbaza.traincompose.logMsg
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor() : ViewModel() {
+class MainViewModel @Inject constructor() : ViewModel() {
 
-    private val _newsState = MutableStateFlow(true)
+    private val _newsState = MutableStateFlow(false)
     val newsState: StateFlow<Boolean> get() = _newsState
 
 
     init {
-        logMsg("profie viewmodel init")
+       // logMsg("profie viewmodel init")
     }
 
     fun login(){
