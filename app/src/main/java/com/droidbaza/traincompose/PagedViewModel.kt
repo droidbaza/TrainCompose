@@ -18,6 +18,11 @@ abstract class PagedViewModel<T : Any>() : ViewModel() {
     }
     val errorState: StateFlow<Int?> get() = _errorState
 
+    private val _loading: MutableStateFlow<Boolean> by lazy {
+        MutableStateFlow(false)
+    }
+    val loading: StateFlow<Boolean> get() = _loading
+
     private val _itemsState: MutableStateFlow<List<T>> by lazy {
         MutableStateFlow(emptyList())
     }
@@ -61,6 +66,7 @@ abstract class PagedViewModel<T : Any>() : ViewModel() {
     }
 
     open fun onTryNext(page: Long) {
+        _loading.value = true
         if (job?.isActive == true) return
         if (!isLastPage) {
             onJobRequestPage(page)
@@ -70,19 +76,20 @@ abstract class PagedViewModel<T : Any>() : ViewModel() {
     }
 
     open fun onHandleError(error: Int) {
+        _loading.value = false
         _errorState.value = error
     }
 
     private fun onHandlePage(page: List<T>? = null) {
+        if (_loading.value) _loading.value = false
         if (_errorState.value != null) _errorState.value = null
         _itemsState.value = _itemsState.value + (page ?: emptyList())
     }
 
     abstract fun onJobRequestPage(nextPage: Long)
 
-    fun onNextPage(inProgress: ((Boolean) -> Unit)? = null) {
+    fun onNextPage() {
         if (!isLastPage) {
-            inProgress?.invoke(true)
             onTryNext(page)
         }
     }

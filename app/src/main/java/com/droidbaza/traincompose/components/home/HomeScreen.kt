@@ -1,36 +1,20 @@
 package com.droidbaza.traincompose.components.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.droidbaza.data.model.Movie
 import com.google.accompanist.coil.rememberCoilPainter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
-@ExperimentalFoundationApi
-@Composable
-fun HomeScreen(homeViewModel: HomeViewModel, state: LazyListState) {
-    MaterialTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(title = { Text(text = "Pagination with Compose") })
-            }) {
-            LazyMovieItems(homeViewModel, state)
-        }
-    }
-}
 
 inline fun <T : Any> List<T>.isReadyForNext(
     currentIndex: Int,
@@ -42,47 +26,52 @@ inline fun <T : Any> List<T>.isReadyForNext(
     }
 }
 
-@ExperimentalFoundationApi
 @Composable
-fun LazyMovieItems(viewModel: HomeViewModel, state: LazyListState) {
-    val itemsState = viewModel.itemsState.collectAsState()
-    val error = viewModel.errorState.collectAsState()
-    val items = itemsState.value
-    val scope = rememberCoroutineScope()
-    state.withSnap(scope)
+fun LazyMovieItems(
+    items: List<Movie>,
+    error: Int?,
+    loading: Boolean,
+    goDetails: (Movie) -> Unit,
+    nextPage: () -> Unit,
+    onRefresh: () -> Unit
+) {
 
-    Box(modifier = Modifier.fillMaxHeight()) {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth(),
+    ) {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.Center),
+                color = Color.Blue,
+                strokeWidth = 2.dp
+            )
+        }
+
         LazyColumn(
-            state = state,
             modifier = Modifier.padding(bottom = 56.dp),
         ) {
             itemsIndexed(
                 items,
                 itemContent = { i: Int, movie: Movie ->
-                    MovieCard(movie = movie)
+                    MovieCard(
+                        movie = movie,
+                        onClick = goDetails
+                    )
                     items.isReadyForNext(
                         currentIndex = i,
-                        loadNext = {
-                            viewModel.onNextPage()
-                        }
+                        loadNext = nextPage
                     )
                 })
         }
 
-        Row {
-            Button(onClick = { viewModel.onReset() }) {
-                Text(text = "clear")
-            }
-            Button(onClick = { viewModel.onRestart() }) {
-                Text(text = "restart")
-            }
-        }
-
-
-        if (error.value != null) {
+        if (error != null) {
             Snackbar(
                 action = {
-                    Button(onClick = { viewModel.onRefresh(false) }) {
+                    Button(onClick = onRefresh) {
                         Text("Retry")
                     }
                 },
@@ -90,20 +79,20 @@ fun LazyMovieItems(viewModel: HomeViewModel, state: LazyListState) {
                     .padding(bottom = 56.dp)
                     .align(Alignment.BottomCenter)
             ) { Text(text = "Error loading") }
-
         }
     }
-
 
     //  parentState.snap(coroutineScope)
 }
 
 @Composable
-fun MovieCard(movie: Movie) {
+fun MovieCard(movie: Movie, onClick: (Movie) -> Unit) {
     Card(
         modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth()
+            .clickable { onClick(movie) },
+        backgroundColor = Color.LightGray
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Image(
@@ -133,7 +122,7 @@ fun MovieCard(movie: Movie) {
 }
 
 
-fun LazyListState.withSnap(coroutineScope: CoroutineScope) {
+/*fun LazyListState.withSnap(coroutineScope: CoroutineScope) {
     if (!isScrollInProgress && firstVisibleItemScrollOffset != 0) {
         val current = firstVisibleItemIndex
         val last = layoutInfo.totalItemsCount - 1
@@ -148,7 +137,7 @@ fun LazyListState.withSnap(coroutineScope: CoroutineScope) {
             animateScrollToItem(snapPosition)
         }
     }
-}
+}*/
 
 
 

@@ -1,5 +1,9 @@
 package com.droidbaza.data.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class Movie(
     val id: Int,
     val name: String,
@@ -8,4 +12,4 @@ data class Movie(
     val voteAverage: Double,
     val voteCount: Int,
     var pageMeta:String="",
-)
+) : Parcelable

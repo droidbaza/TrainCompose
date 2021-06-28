@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val moviesRepository: MoviesRepository) :
+class MoviesViewModel @Inject constructor(private val moviesRepository: MoviesRepository) :
     PagedViewModel<Movie>() {
 
     init {
