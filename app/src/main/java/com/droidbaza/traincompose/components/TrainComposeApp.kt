@@ -20,7 +20,7 @@ import com.droidbaza.traincompose.components.*
 import com.droidbaza.traincompose.components.Destiny.*
 import com.droidbaza.traincompose.components.map.MapScreen
 import com.droidbaza.traincompose.components.map.rememberMapViewWithLifecycle
-import com.droidbaza.traincompose.components.stories.StoriesScreen
+import com.droidbaza.traincompose.components.stories.MyInstagramScreen
 import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
 import com.droidbaza.traincompose.ui.theme.TrainComposeTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -115,9 +115,7 @@ fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
             )
         }
         composable(Stories.route) {
-            StoriesScreen(
-                finish = router.goBack
-            )
+            MyInstagramScreen()
         }
 
         composable(Home.route) {
