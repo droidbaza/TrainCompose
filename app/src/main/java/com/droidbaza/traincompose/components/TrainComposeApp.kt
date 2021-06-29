@@ -20,27 +20,33 @@ import com.droidbaza.traincompose.components.*
 import com.droidbaza.traincompose.components.Destiny.*
 import com.droidbaza.traincompose.components.map.MapScreen
 import com.droidbaza.traincompose.components.map.rememberMapViewWithLifecycle
+import com.droidbaza.traincompose.components.stories.StoriesScreen
 import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
+import com.droidbaza.traincompose.ui.theme.TrainComposeTheme
+import com.google.accompanist.pager.ExperimentalPagerApi
 
 
+@ExperimentalPagerApi
 @Composable
 fun MainScreen(finish: () -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    Scaffold(
-        bottomBar = {
-            if (currentRoute != null) {
-                if (currentRoute == "intro" || currentRoute == "splash") {
-                    return@Scaffold
-                } else {
-                    BottomNavigationBar(navController)
+    TrainComposeTheme(darkTheme = true) {
+        Scaffold(
+            bottomBar = {
+                if (currentRoute != null) {
+                    if (currentRoute == "intro" || currentRoute == "splash") {
+                        return@Scaffold
+                    } else {
+                        BottomNavigationBar(navController)
+                    }
                 }
             }
+        ) {
+            AppNavigation(navController = navController, finish)
         }
-    ) {
-        AppNavigation(navController = navController, finish)
     }
 }
 
@@ -89,6 +95,7 @@ fun BottomNavigationBar(navController: NavController) {
     }
 }
 
+@ExperimentalPagerApi
 @Composable
 fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
     val startDestination = Home.route
@@ -107,10 +114,17 @@ fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
                 goBack = router.goIntro
             )
         }
+        composable(Stories.route) {
+            StoriesScreen(
+                finish = router.goBack
+            )
+        }
+
         composable(Home.route) {
             HomeScreen(
                 goDetails = router.goHomeDetails,
-                goBack = finish
+                goBack = finish,
+                goStories = router.goStories
             )
         }
         composable(Music.route) {

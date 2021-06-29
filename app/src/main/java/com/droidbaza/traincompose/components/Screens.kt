@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,14 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.droidbaza.data.model.Movie
 import com.droidbaza.traincompose.components.home.LazyMovieItems
 import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
 import kotlin.random.Random
 
 @Composable
-fun HomeScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit) {
+fun HomeScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit, goStories: () -> Unit) {
     BackHandler {
         goBack()
     }
@@ -44,6 +44,9 @@ fun HomeScreen(goDetails: (id: Int) -> Unit, goBack: () -> Unit) {
             textAlign = TextAlign.Center,
             fontSize = 25.sp
         )
+        Button(onClick = goStories) {
+            Text(text = "go stories")
+        }
     }
 }
 

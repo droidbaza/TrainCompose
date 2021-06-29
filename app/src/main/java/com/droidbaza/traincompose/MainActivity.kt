@@ -5,20 +5,28 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.droidbaza.traincompose.components.MainScreen
-
-import com.droidbaza.traincompose.ui.theme.TrainComposeTheme
+import com.google.accompanist.pager.ExperimentalPagerApi
 import dagger.hilt.android.AndroidEntryPoint
 
+@ExperimentalPagerApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+  //  private val ready: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private var backPressed = 0L
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        /*lifecycleScope.launchWhenCreated {
+            delay(2000)
+            ready.value = true
+        }*/
         setContent {
-            TrainComposeTheme() {
-                MainScreen(finish = finish)
-            }
+           /* val result = ready.collectAsState()
+            if (result.value) {
+
+            }*/
+            MainScreen(finish = finish)
         }
     }
 

@@ -18,6 +18,7 @@ import com.droidbaza.traincompose.components.Routes.ROUTE_MUSIC_DETAILS
 import com.droidbaza.traincompose.components.Routes.ROUTE_PROFILE
 import com.droidbaza.traincompose.components.Routes.ROUTE_PROFILE_DETAILS
 import com.droidbaza.traincompose.components.Routes.ROUTE_SPLASH
+import com.droidbaza.traincompose.components.Routes.ROUTE_STORIES
 
 object Routes {
     const val ROUTE_HOME = "home"
@@ -31,7 +32,8 @@ object Routes {
     const val ROUTE_MUSIC_DETAILS = "music details"
     const val ROUTE_PROFILE_DETAILS = "profile details"
     const val ROUTE_INTRO = "intro"
-    const val ROUTE_SPLASH="splash"
+    const val ROUTE_SPLASH = "splash"
+    const val ROUTE_STORIES = "splash"
 }
 
 sealed class Destiny(val route: String, var tag: String = route,val title: String="", @DrawableRes val icon: Int = 0) {
@@ -41,14 +43,16 @@ sealed class Destiny(val route: String, var tag: String = route,val title: Strin
     object Movies : Destiny(route = ROUTE_MOVIES, title = "Movies", icon = R.drawable.ic_star)
     object Books : Destiny(route = ROUTE_BOOKS, title = "Books", icon = R.drawable.ic_star)
     object Profile : Destiny(route = ROUTE_PROFILE, title = "Profile", icon = R.drawable.ic_profile)
-   // details screen destinies
+
+    // details screen destinies
     object HomeDetails : Destiny(route = ROUTE_HOME_DETAILS)
     object MusicDetails : Destiny(route = ROUTE_MUSIC_DETAILS)
     object MoviesDetails : Destiny(route = ROUTE_MOVIE_DETAILS)
     object BooksDetails : Destiny(route = ROUTE_BOOKS_DETAILS)
     object ProfileDetails : Destiny(route = ROUTE_PROFILE_DETAILS)
-    object Intro:Destiny(route = ROUTE_INTRO)
-    object Splash:Destiny(route = ROUTE_SPLASH)
+    object Intro : Destiny(route = ROUTE_INTRO)
+    object Splash : Destiny(route = ROUTE_SPLASH)
+    object Stories : Destiny(route = ROUTE_STORIES)
 }
 
 class Router(val navHostController: NavHostController, startDestination: String = ROUTE_HOME) {
@@ -65,6 +69,10 @@ class Router(val navHostController: NavHostController, startDestination: String 
         checkArgsAndNavigate(it, Destiny.BooksDetails)
     }
 
+    val goStories: () -> Unit = {
+        navigate(Destiny.Stories.route)
+    }
+
     val goProfileDetails: (arg: Any?) -> Unit = {
         checkArgsAndNavigate(it, Destiny.ProfileDetails)
     }
@@ -73,8 +81,8 @@ class Router(val navHostController: NavHostController, startDestination: String 
         checkArgsAndNavigate(it, Destiny.MusicDetails)
     }
 
-    val goIntro:()->Unit = {
-        navigate(Destiny.Intro.route,true)
+    val goIntro: () -> Unit = {
+        navigate(Destiny.Intro.route, true)
     }
 
     val goSplash:()->Unit={
