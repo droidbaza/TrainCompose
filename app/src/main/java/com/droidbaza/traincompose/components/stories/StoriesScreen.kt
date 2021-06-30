@@ -18,35 +18,36 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+
 import kotlinx.coroutines.launch
 
 enum class StoryType {
     IMAGE, VIDEO
 }
 
-data class Stories(val page: Int, val stories: List<Story>, var position: Int = 0)
-data class Story(val storyType: StoryType, val source: String)
+data class Story(val page: Int, val items: List<StoryChild>, var position: Int = 0)
+data class StoryChild(val storyType: StoryType, val source: String)
 
 @ExperimentalPagerApi
 @Composable
 fun StoriesScreen(finish: () -> Unit = {}) {
     val pages = remember {
         (1..100).mapIndexed { index, _ ->
-            Stories(
+            Story(
                 page = index,
                 listOf(
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.VIDEO, ""),
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.VIDEO, ""),
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.VIDEO, ""),
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.IMAGE, ""),
-                    Story(StoryType.VIDEO, ""),
-                    Story(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.VIDEO, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.VIDEO, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.VIDEO, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.IMAGE, ""),
+                    StoryChild(StoryType.VIDEO, ""),
+                    StoryChild(StoryType.IMAGE, ""),
                 )
             )
         }
@@ -62,11 +63,10 @@ fun StoriesScreen(finish: () -> Unit = {}) {
         HorizontalPager(
             state = pagerState
         ) { page ->
-            StoriesPage(
+            MyInstagramScreen(
                 pages[page],
-                isReady = currentPage == page,
-                isRunning = stateRunning.value,
-                nextStory = {
+                isReady = currentPage == page&&stateRunning.value,
+                goNext = {
                     if (currentPage + 1 < pages.size) {
                         scope.launch {
                             pagerState.scrollToPage(currentPage + 1)
@@ -75,24 +75,13 @@ fun StoriesScreen(finish: () -> Unit = {}) {
                         finish()
                     }
                 },
-                previousStory = {
+                goPrevious = {
                     if (currentPage - 1 >= 0) {
                         scope.launch {
                             pagerState.scrollToPage(currentPage - 1)
                         }
                     } else {
                         finish()
-                    }
-                },
-                statePlaying = {
-                    if (it) {
-                        if (stateRunning.value) {
-                            stateRunning.value =false
-                        }
-                    } else {
-                        if (!stateRunning.value) {
-                            stateRunning.value = true
-                        }
                     }
                 }
             )
@@ -112,7 +101,7 @@ fun StoriesScreen(finish: () -> Unit = {}) {
 
 @Composable
 fun StoriesPage(
-    modelStories: Stories,
+    modelStory: Story,
     isReady: Boolean = false,
     isRunning: Boolean = false,
     statePlaying: (isPaused: Boolean) -> Unit = {},
@@ -125,9 +114,9 @@ fun StoriesPage(
     indicatorPadding: Dp = 2.dp,
     storyDuration: Int = 4_000,
 ) {
-    val items = modelStories.stories
+    val items = modelStory.items
     val count = items.size
-    val position = modelStories.position
+    val position = modelStory.position
     val story = items[position]
 
     var isPaused by remember {
@@ -145,14 +134,14 @@ fun StoriesPage(
                 detectTapGestures(
                     onTap = { offset ->
                         if (offset.x < constraints.maxWidth / 2) {
-                            if (modelStories.position - 1 >= 0) {
-                                modelStories.position = modelStories.position - 1
+                            if (modelStory.position - 1 >= 0) {
+                                modelStory.position = modelStory.position - 1
                             } else {
                                 previousStory()
                             }
                         } else {
-                            if (modelStories.position + 1 < count) {
-                                modelStories.position = modelStories.position + 1
+                            if (modelStory.position + 1 < count) {
+                                modelStory.position = modelStory.position + 1
                             } else {
                                 nextStory()
                             }
@@ -177,9 +166,9 @@ fun StoriesPage(
             stepDuration = storyDuration,
             backgroundColor = Color.LightGray,
             color = Color.Blue,
-            currentPosition = modelStories.position,
+            currentPosition = modelStory.position,
             positionChanged = {
-                modelStories.position = it
+                modelStory.position = it
             },
             isPaused = isPaused,
             progressComplete = { nextStory() }

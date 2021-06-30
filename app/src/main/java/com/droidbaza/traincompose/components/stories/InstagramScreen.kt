@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,22 +21,23 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Composable
-fun MyInstagramScreen() {
-    val images = remember {
-        listOf(
-            R.drawable.ic_business,
-            R.drawable.ic_cleaning,
-            R.drawable.ic_email,
-            R.drawable.ic_fb,
-            R.drawable.ic_google
-        )
-    }
-    val stepCount = images.size
+fun MyInstagramScreen(story: Story,
+                      isReady: Boolean = false,
+                      goNext:()->Unit,
+                      goPrevious:()->Unit
+) {
+    val items = remember { story.items }
+    val stepCount = items.count()
     var currentStep by remember {
-        mutableStateOf(0)
+        mutableStateOf(story.position)
     }
+    story.position = currentStep
+
     var isPaused by remember {
         mutableStateOf(false)
+    }
+    if(!isReady){
+        isPaused = true
     }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val imageModifier = Modifier
@@ -45,7 +47,7 @@ fun MyInstagramScreen() {
                     onTap = { offset ->
                         currentStep =
                             if (offset.x < constraints.maxWidth / 2) {
-                                max(0, currentStep - 1)
+                                max(-1, currentStep - 1)
                             } else {
                                 min(stepCount - 1, currentStep + 1)
                             }
@@ -65,58 +67,72 @@ fun MyInstagramScreen() {
                     }
                 )
             }
-        Image(
-            painter = painterResource(id = images[currentStep]),
-            contentDescription = null,
-            contentScale = ContentScale.FillHeight,
-            modifier = imageModifier
-        )
-        MyInstagramProgressIndicator(
+        val imgPosition = if(currentStep<0)0 else currentStep
+        Box(modifier = imageModifier.fillMaxSize()){
+            Text(text = "story ${story.position} current $currentStep")
+        }
+
+        StoryProgressIndicator(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
-            stepCount = stepCount,
-            stepDuration = 2_000,
+            storyCount = stepCount,
+            storyDuration = 2_000,
             unselectedColor = Color.LightGray,
             selectedColor = Color.Blue,
-            currentStep = currentStep,
-            onStepChanged = { currentStep = it },
+            storyPosition = currentStep,
+            onPositionChanged = {
+                if(isPaused)isPaused = false
+                currentStep = it
+                story.position = it
+                                },
             isPaused = isPaused,
-            onComplete = { /* TODO */ }
+            onComplete = {
+                isPaused = true
+                currentStep = story.position
+                goNext()
+            },
+            onReset = {
+                currentStep = 0
+                story.position = 0
+                isPaused = true
+                goPrevious()
+            }
         )
     }
 }
 
 @Composable
-fun MyInstagramProgressIndicator(
+fun StoryProgressIndicator(
     modifier: Modifier = Modifier,
-    stepCount: Int,
-    stepDuration: Int,
+    storyCount: Int,
+    storyDuration: Int,
     unselectedColor: Color,
     selectedColor: Color,
-
-    currentStep: Int,
-    onStepChanged: (Int) -> Unit,
+    storyPosition: Int,
+    onPositionChanged: (childPosition:Int) -> Unit,
     onComplete: () -> Unit,
+    onReset:()->Unit,
     isPaused: Boolean = false
 ) {
-    var currentStepState by remember(currentStep) {
-        mutableStateOf(currentStep)
+    val position = if(storyPosition>=0)storyPosition else 0
+    var statePosition by remember(position) {
+        mutableStateOf(position)
     }
-    val progress = remember(currentStep) {
+    val stateProgress = remember(position) {
         Animatable(0f)
     }
     Row(modifier) {
-        for (i in 0 until stepCount) {
-            val stepProgress = when {
-                i == currentStepState -> progress.value
-                i > currentStepState -> 0f
+        for (i in 0 until storyCount) {
+            val progress = when {
+                i == statePosition -> stateProgress.value
+                i > statePosition -> 0f
                 else -> 1f
             }
             LinearProgressIndicator(
                 color = selectedColor,
                 backgroundColor = unselectedColor,
-                progress = stepProgress,
+                progress = progress,
                 modifier = Modifier
                     .weight(1f)
                     .padding(2.dp)
@@ -124,26 +140,33 @@ fun MyInstagramProgressIndicator(
         }
     }
 
-    LaunchedEffect(isPaused, currentStep) {
+    LaunchedEffect(isPaused, storyPosition) {
         if (isPaused) {
-            progress.stop()
+            stateProgress.stop()
         } else {
-            for (i in currentStep until stepCount) {
-                progress.animateTo(
-                    1f,
-                    animationSpec = tween(
-                        durationMillis =
-                        ((1f - progress.value) * stepDuration)
-                            .toInt(),
-                        easing = LinearEasing
+            if(storyPosition<0){
+                stateProgress.snapTo(0f)
+                onReset()
+            }else {
+                for (i in storyPosition until storyCount) {
+                    stateProgress.animateTo(
+                        1f,
+                        animationSpec = tween(
+                            durationMillis =
+                            ((1f - stateProgress.value) * storyDuration)
+                                .toInt(),
+                            easing = LinearEasing
+                        )
                     )
-                )
-                if (currentStepState + 1 <= stepCount - 1) {
-                    progress.snapTo(0f)
-                    currentStepState += 1
-                    onStepChanged(currentStepState)
-                } else {
-                    onComplete()
+                    if (statePosition + 1 <= storyCount - 1) {
+
+                        stateProgress.snapTo(0f)
+                        statePosition += 1
+                        onPositionChanged(statePosition)
+
+                    } else {
+                        onComplete()
+                    }
                 }
             }
         }
