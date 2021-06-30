@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-
 import kotlinx.coroutines.launch
 
 enum class StoryType {
@@ -32,7 +31,7 @@ data class StoryChild(val storyType: StoryType, val source: String)
 @Composable
 fun StoriesScreen(finish: () -> Unit = {}) {
     val pages = remember {
-        (1..100).mapIndexed { index, _ ->
+        (0..100).mapIndexed { index, _ ->
             Story(
                 page = index,
                 listOf(
@@ -57,34 +56,48 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     val stateRunning = remember {
         mutableStateOf(false)
     }
+    val story = remember {
+        mutableStateOf(pages[0])
+    }
+
     stateRunning.value = !pagerState.isScrollInProgress
 
     Box(contentAlignment = Alignment.Center) {
         HorizontalPager(
             state = pagerState
         ) { page ->
-            MyInstagramScreen(
-                pages[page],
-                isReady = currentPage == page&&stateRunning.value,
-                goNext = {
-                    if (currentPage + 1 < pages.size) {
-                        scope.launch {
-                            pagerState.scrollToPage(currentPage + 1)
+            if(currentPage==page){
+                story.value = pages[page]
+
+                MyInstagramScreen(
+                    isResume = stateRunning.value && currentPage == page,
+                    pages[page],
+                    //  isReady = currentPage == page&&stateRunning.value,
+                    next = {
+                        if (currentPage + 1 < pages.size) {
+                            // story.value = pages[currentPage + 1]
+                            msg("next Page ${currentPage + 1}")
+                            scope.launch {
+                                pagerState.scrollToPage(currentPage + 1)
+                            }
+                        } else {
+                            finish()
                         }
-                    } else {
-                        finish()
-                    }
-                },
-                goPrevious = {
-                    if (currentPage - 1 >= 0) {
-                        scope.launch {
-                            pagerState.scrollToPage(currentPage - 1)
+                    },
+                    back = {
+                        if (currentPage - 1 >= 0) {
+                            stateRunning.value = currentPage == page && !pagerState.isScrollInProgress
+                            // story.value = pages[currentPage - 1]
+                            msg("back Page ${currentPage + 1}")
+                            scope.launch {
+                                pagerState.scrollToPage(currentPage - 1)
+                            }
+                        } else {
+                            finish()
                         }
-                    } else {
-                        finish()
                     }
-                }
-            )
+                )
+            }
         }
         Text(
             text = "${pagerState.currentPage}|${pagerState.pageCount}",
