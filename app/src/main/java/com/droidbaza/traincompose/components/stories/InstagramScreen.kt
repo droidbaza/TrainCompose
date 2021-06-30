@@ -12,35 +12,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.droidbaza.traincompose.R
 import kotlin.math.max
 import kotlin.math.min
 
 
 @Composable
 fun MyInstagramScreen(
-    isResume: Boolean,
     story: Story,
     next: () -> Unit,
     back: () -> Unit
 ) {
-    msg("current page is ${story.page}")
-    val images = remember {
-        listOf(
-            R.drawable.ic_business,
-            R.drawable.ic_google,
-            R.drawable.ic_google,
-        )
-    }
-    val stepCount = images.size
+    val stepCount = story.childCount
     var currentStep by remember {
         mutableStateOf(story.position)
     }
-    val currentPage by remember {
-        mutableStateOf(story.page)
-    }
     var isPaused by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     var isReset by remember {
         mutableStateOf(false)
@@ -52,15 +39,27 @@ fun MyInstagramScreen(
         mutableStateOf("in progress")
     }
 
-    if (!isResume) {
-        isPaused = true
+    if (!story.isResumed.value) {
+        msg("PAUSED ${story.page}")
+        if (!isPaused) {
+            isPaused = true
+        }
+    } else {
+        msg("RESUMED ${story.page}")
+        currentStep = story.position
+        isPaused = false
+        //isSkip = false
     }
+
+    var pressTime = 0L
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val imageModifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { offset ->
+                        pressTime = System.currentTimeMillis()
+                        //msg("TAP TRIGGER")
                         val position =
                             if (offset.x < constraints.maxWidth / 2) {
                                 max(-1, currentStep - 1)
@@ -70,15 +69,20 @@ fun MyInstagramScreen(
                         when {
                             position < 0 -> {
                                 currentStep = 0
-                                status = "on stop"
                                 isReset = true
+                                status = "on stop"
+                                msg("START RESET TRIGGER")
+                                isSkip = false
+
                             }
                             position == stepCount -> {
                                 msg("START TRIGGER")
-                                currentStep = position-1
+                                currentStep = position - 1
                                 isSkip = true
+                                isReset = false
                             }
                             else -> {
+                                msg("START ELSE TRIGGER")
                                 currentStep = position
                                 isPaused = false
                                 isReset = false
@@ -88,14 +92,19 @@ fun MyInstagramScreen(
                         }
                     },
                     onPress = {
-                      /*  try {
-                            isPaused = true
-                            awaitRelease()
-                        } finally {
-                            isPaused = false
-                            isReset = false
-                            isSkip = false
-                        }*/
+                         /* val time = (System.currentTimeMillis() - pressTime) / 1000000000
+                          msg("time is $time")
+                          if (time > 2000) {*/
+                            //  msg("PRESSS TRIGGER")
+                              try {
+                                  isPaused = true
+                                  awaitRelease()
+                              } finally {
+                                  isPaused = false
+                                 // isReset = false
+                                 // isSkip = false
+                              }
+
                     },
                     onLongPress = {
                         // must be here to avoid call onTap
@@ -103,15 +112,17 @@ fun MyInstagramScreen(
                     }
                 )
             }
+        val child = story.items[currentStep]
         Box(modifier = imageModifier) {
-            Text(text = "${currentStep+1} time ${currentPage+1} is ${System.currentTimeMillis() / 1000} status ${status}")
+            Text(text = " page ${story.page} step ${currentStep + 1} time ${System.currentTimeMillis() / 1000} status ${status}")
         }
         MyInstagramProgressIndicator(
+            page = story.page,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
             stepCount = stepCount,
-            stepDuration = 2_000,
+            stepDuration = child.duration,
             unselectedColor = Color.LightGray,
             selectedColor = Color.Blue,
             currentStep = currentStep,
@@ -119,12 +130,11 @@ fun MyInstagramScreen(
                 currentStep = it
                 if (currentStep == 0) {
                     status = "is start position"
+                    msg("TRY GO START")
                     back()
                 } else {
                     status = "in progress"
-
                 }
-                msg("step changed $it")
             },
             isReset = isReset,
             isPaused = isPaused,
@@ -147,6 +157,7 @@ fun MyInstagramScreen(
 
 @Composable
 fun MyInstagramProgressIndicator(
+    page: Int = 0,
     modifier: Modifier = Modifier,
     stepCount: Int,
     stepDuration: Int,
@@ -188,24 +199,26 @@ fun MyInstagramProgressIndicator(
     LaunchedEffect(isPaused, currentStep, isReset, isSkip) {
         when {
             isPaused -> {
-                msg("PAUSED $currentStepState")
+                msg("PAUSED PAGE$page step $currentStepState")
                 savePosition(currentStepState)
                 progress.stop()
             }
             isReset -> {
-                msg("RESET PRESSED $currentStepState")
+                msg("RESET PRESSED PAGE$page step $currentStepState")
+                currentStepState = 0
                 savePosition(currentStepState)
                 progress.snapTo(0f)
                 progress.stop()
-                onBack()
+                onStepChanged(0)
             }
             isSkip -> {
-                msg("SKIP PRESSED $currentStepState")
+                msg("SKIP PRESSED PAGE$page step $currentStepState")
                 currentStepState = stepCount - 1
                 savePosition(currentStepState)
                 onComplete()
             }
             else -> {
+                msg("RESUME PAGE$page step $currentStepState")
                 for (i in currentStep until stepCount) {
                     progress.animateTo(
                         1f,

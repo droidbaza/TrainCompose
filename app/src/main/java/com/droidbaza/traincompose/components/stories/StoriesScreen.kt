@@ -18,89 +18,85 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 enum class StoryType {
     IMAGE, VIDEO
 }
 
-data class Story(val page: Int, val items: List<StoryChild>, var position: Int = 0)
-data class StoryChild(val storyType: StoryType, val source: String)
+data class Story(
+    val page: Int,
+    val items: List<StoryChild>,
+    var position: Int = 0,
+    val childCount: Int = items.size,
+    var isResumed: MutableState<Boolean> = mutableStateOf(false)
+)
+
+data class StoryChild(val storyType: StoryType, val source: String, var duration: Int = 20_000)
 
 @ExperimentalPagerApi
 @Composable
 fun StoriesScreen(finish: () -> Unit = {}) {
+    val childs = listOf(
+        StoryChild(StoryType.IMAGE, ""),
+        StoryChild(StoryType.IMAGE, ""),
+        StoryChild(StoryType.VIDEO, ""),
+        StoryChild(StoryType.IMAGE, ""),
+    )
     val pages = remember {
         (0..100).mapIndexed { index, _ ->
             Story(
                 page = index,
                 listOf(
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.VIDEO, ""),
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.VIDEO, ""),
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.VIDEO, ""),
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.IMAGE, ""),
-                    StoryChild(StoryType.VIDEO, ""),
-                    StoryChild(StoryType.IMAGE, ""),
+                    childs.get(Random.nextInt(0, childs.size)),
+                    childs.get(Random.nextInt(0, childs.size)),
+                    childs.get(Random.nextInt(0, childs.size)),
+                    childs.get(Random.nextInt(0, childs.size)),
+                    childs.get(Random.nextInt(0, childs.size)),
+                    childs.get(Random.nextInt(0, childs.size)),
+                    childs.get(Random.nextInt(0, childs.size))
                 )
             )
         }
     }
+    val currentStory = remember { mutableStateOf(pages[0]) }
+    val currentPage = remember { mutableStateOf(0) }
     val pagerState = rememberPagerState(pageCount = pages.size, initialOffscreenLimit = 1)
     val scope = rememberCoroutineScope()
-    val stateRunning = remember {
-        mutableStateOf(false)
-    }
-    val story = remember {
-        mutableStateOf(pages[0])
-    }
-
-    stateRunning.value = !pagerState.isScrollInProgress
 
     Box(contentAlignment = Alignment.Center) {
         HorizontalPager(
             state = pagerState
         ) { page ->
-            if(currentPage==page){
-                story.value = pages[page]
-
-                MyInstagramScreen(
-                    isResume = stateRunning.value && currentPage == page,
-                    pages[page],
-                    //  isReady = currentPage == page&&stateRunning.value,
-                    next = {
-                        if (currentPage + 1 < pages.size) {
-                            // story.value = pages[currentPage + 1]
-                            msg("next Page ${currentPage + 1}")
-                            scope.launch {
-                                pagerState.scrollToPage(currentPage + 1)
-                            }
-                        } else {
-                            finish()
+            MyInstagramScreen(
+                currentStory.value,
+                next = {
+                    if (currentPage.value + 1 < pages.size) {
+                        // story.value = pages[currentPage + 1]
+                        msg("next Page ${currentPage.value + 1}")
+                        scope.launch {
+                            pagerState.scrollToPage(currentPage.value + 1)
                         }
-                    },
-                    back = {
-                        if (currentPage - 1 >= 0) {
-                            stateRunning.value = currentPage == page && !pagerState.isScrollInProgress
-                            // story.value = pages[currentPage - 1]
-                            msg("back Page ${currentPage + 1}")
-                            scope.launch {
-                                pagerState.scrollToPage(currentPage - 1)
-                            }
-                        } else {
-                            finish()
-                        }
+                    } else {
+                        finish()
                     }
-                )
-            }
+                },
+                back = {
+                    if (currentPage.value - 1 >= 0) {
+                        msg("back Page ${currentPage.value - 1}")
+                        scope.launch {
+                            pagerState.scrollToPage(currentPage.value - 1)
+                        }
+                    } else {
+                        finish()
+                    }
+                }
+            )
         }
         Text(
-            text = "${pagerState.currentPage}|${pagerState.pageCount}",
+            text = "${currentPage.value}|${pagerState.pageCount}",
             modifier = Modifier
                 .align(
                     Alignment.BottomCenter
@@ -110,6 +106,24 @@ fun StoriesScreen(finish: () -> Unit = {}) {
         )
     }
 
+    LaunchedEffect(pagerState, pages, currentStory, currentPage) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            currentPage.value = page
+            msg("launch effect select page $page")
+            pages.forEachIndexed { index, story ->
+                if (!story.isResumed.value && index == page) {
+                    story.isResumed.value = true
+                    msg("CHANGE FROM PAUSE TO RESUME № ${story.page} :${story.isResumed.value}")
+                } else {
+                    if (story.isResumed.value) {
+                        story.isResumed.value = false
+                        msg("CHANGE FROM RESUME TO PAUSE № ${story.page} :${story.isResumed.value}")
+                    }
+                }
+            }
+            currentStory.value = pages[page]
+        }
+    }
 }
 
 @Composable
