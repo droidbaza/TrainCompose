@@ -6,6 +6,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.VerticalPager
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 fun StoriesPager(
     items: List<Story>,
     finish: () -> Unit = {},
+    storyOrientation: StoryOrientation = StoryOrientation.HORIZONTAL,
     content: @Composable (StoryChild) -> Unit
 ) {
     val selectedStory = remember { mutableStateOf(items[0]) }
@@ -43,7 +45,7 @@ fun StoriesPager(
         val target = selectedPage.value + 1
         if (target < items.size) {
             scope.launch {
-                pagerState.scrollToPage(target)
+                pagerState.animateScrollToPage(target)
             }
         } else {
             finish()
@@ -54,23 +56,40 @@ fun StoriesPager(
         val target = selectedPage.value - 1
         if (target >= 0) {
             scope.launch {
-                pagerState.scrollToPage(target)
+                pagerState.animateScrollToPage(target)
             }
         } else {
             finish()
         }
     }
 
-    HorizontalPager(
-            state = pagerState
-        ) { page ->
-        StoryPage(
-            items[page],
-            nextPage = nextPage,
-            backPage = backPage,
-            content = content
-        )
+    when (storyOrientation) {
+        StoryOrientation.HORIZONTAL -> {
+            HorizontalPager(
+                state = pagerState
+            ) { page ->
+                StoryPage(
+                    items[page],
+                    nextPage = nextPage,
+                    backPage = backPage,
+                    content = content
+                )
+            }
+        }
+        StoryOrientation.VERTICAL -> {
+            VerticalPager(
+                state = pagerState
+            ) { page ->
+                StoryPage(
+                    items[page],
+                    nextPage = nextPage,
+                    backPage = backPage,
+                    content = content
+                )
+            }
+        }
     }
+
 
     LaunchedEffect(pagerState) {
 

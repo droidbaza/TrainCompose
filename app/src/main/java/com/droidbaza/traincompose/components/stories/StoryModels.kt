@@ -7,8 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 enum class StoryType {
     IMAGE, VIDEO
 }
+enum class StoryOrientation {
+    HORIZONTAL, VERTICAL
+}
 
-data class Story(
+class Story(
     val page: Int,
     val items: List<StoryChild>,
     var position: Int = 0,
@@ -16,7 +19,7 @@ data class Story(
     var active: MutableState<Boolean> = mutableStateOf(false)
 )
 
-data class StoryChild(
+ class StoryChild(
     val storyType: StoryType,
     val source: String,
     var duration: Int = 15_000,

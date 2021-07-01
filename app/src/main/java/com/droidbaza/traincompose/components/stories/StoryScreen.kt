@@ -40,7 +40,11 @@ fun StoryScreen(finish: () -> Unit) {
     }
     val context = LocalContext.current
 
-    StoriesPager(items = items, finish = finish) {
+    StoriesPager(
+        items = items,
+        finish = finish,
+        storyOrientation = StoryOrientation.VERTICAL
+    ) {
 
         Box(modifier = Modifier.fillMaxSize()) {
             when (it.position) {
