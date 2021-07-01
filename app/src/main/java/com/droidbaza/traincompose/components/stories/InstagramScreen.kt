@@ -92,18 +92,18 @@ fun MyInstagramScreen(
                         }
                     },
                     onPress = {
-                         /* val time = (System.currentTimeMillis() - pressTime) / 1000000000
+                        /* val time = (System.currentTimeMillis() - pressTime) / 1000000000
                           msg("time is $time")
                           if (time > 2000) {*/
-                            //  msg("PRESSS TRIGGER")
-                              try {
-                                  isPaused = true
-                                  awaitRelease()
-                              } finally {
-                                  isPaused = false
-                                 // isReset = false
-                                 // isSkip = false
-                              }
+                        //  msg("PRESSS TRIGGER")
+                        try {
+                            isPaused = true
+                            awaitRelease()
+                        } finally {
+                            isPaused = false
+                            // isReset = false
+                            // isSkip = false
+                        }
 
                     },
                     onLongPress = {
@@ -114,6 +114,9 @@ fun MyInstagramScreen(
             }
         val child = story.items[currentStep]
         Box(modifier = imageModifier) {
+            VideoPlayer(uri = child.source,isPaused) {
+                isPaused = !it
+            }
             Text(text = " page ${story.page} step ${currentStep + 1} time ${System.currentTimeMillis() / 1000} status ${status}")
         }
         MyInstagramProgressIndicator(
@@ -432,3 +435,5 @@ fun StoryProgressIndicator(
         }
     }
 }*/
+
+

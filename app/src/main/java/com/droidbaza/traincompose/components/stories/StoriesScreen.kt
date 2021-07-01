@@ -1,5 +1,6 @@
 package com.droidbaza.traincompose.components.stories
 
+import android.os.Bundle
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -13,11 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.droidbaza.traincompose.R
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.android.libraries.maps.MapView
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -34,16 +41,16 @@ data class Story(
     var isResumed: MutableState<Boolean> = mutableStateOf(false)
 )
 
-data class StoryChild(val storyType: StoryType, val source: String, var duration: Int = 20_000)
+data class StoryChild(val storyType: StoryType, val source: String, var duration: Int = 15_000)
 
 @ExperimentalPagerApi
 @Composable
 fun StoriesScreen(finish: () -> Unit = {}) {
     val childs = listOf(
-        StoryChild(StoryType.IMAGE, ""),
-        StoryChild(StoryType.IMAGE, ""),
-        StoryChild(StoryType.VIDEO, ""),
-        StoryChild(StoryType.IMAGE, ""),
+        StoryChild(StoryType.IMAGE, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" ),
+        StoryChild(StoryType.IMAGE, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"),
+        StoryChild(StoryType.VIDEO, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"),
+        StoryChild(StoryType.IMAGE, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"),
     )
     val pages = remember {
         (0..100).mapIndexed { index, _ ->
@@ -65,6 +72,23 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     val currentPage = remember { mutableStateOf(0) }
     val pagerState = rememberPagerState(pageCount = pages.size, initialOffscreenLimit = 1)
     val scope = rememberCoroutineScope()
+
+    val lifecycleScreen = rememberLifeCycleScreen()
+    val isPause:MutableState<Boolean> = lifecycleScreen.stateResume
+    if(!isPause.value){
+        currentStory.value.apply {
+            if(isResumed.value){
+                isResumed.value = false
+            }
+        }
+    }else{
+        currentStory.value.apply {
+            if(!isResumed.value){
+                isResumed.value = true
+            }
+        }
+    }
+
 
     Box(contentAlignment = Alignment.Center) {
         HorizontalPager(
@@ -278,3 +302,35 @@ fun StoryProgress(
         }
     }
 }
+
+class LifecycleScreen(val stateResume:MutableState<Boolean> = mutableStateOf(true))
+
+@Composable
+fun rememberLifeCycleScreen(): LifecycleScreen {
+    val lifeCycleScreen = remember { LifecycleScreen() }
+    // Makes MapView follow the lifecycle of this composable
+    val lifecycleObserver = rememberLifecycleObserver(lifecycleScreen = lifeCycleScreen)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        lifecycle.addObserver(lifecycleObserver)
+        onDispose {
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
+    return lifeCycleScreen
+}
+
+@Composable
+private fun rememberLifecycleObserver(lifecycleScreen: LifecycleScreen): LifecycleEventObserver =
+    remember(lifecycleScreen) {
+        LifecycleEventObserver { _, event ->
+            val result = when (event) {
+                Lifecycle.Event.ON_START -> true
+                Lifecycle.Event.ON_RESUME -> true
+                else -> false
+            }
+            lifecycleScreen.stateResume.value = result
+
+        }
+    }
