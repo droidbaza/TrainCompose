@@ -20,10 +20,10 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 @Composable
 fun StoryScreen(finish: () -> Unit) {
     val childs = listOf(
+        StoryChild(StoryType.VIDEO, "asset:///fooewd.mp4"),
         StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
-        StoryChild(StoryType.IMAGE, "asset:///food.mp4"),
         StoryChild(StoryType.IMAGE, "asset:///castle.mp4"),
-        StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
+        StoryChild(StoryType.VIDEO, "asset:///food.mpwe4"),
         StoryChild(StoryType.IMAGE, "asset:///food.mp4"),
         StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
         StoryChild(StoryType.IMAGE, "asset:///food.mp4"),

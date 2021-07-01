@@ -169,7 +169,7 @@ private fun StoryPage(
             .fillMaxHeight()
             .fillMaxWidth()
     ) {
-        val imageModifier = Modifier
+        val actionsModifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -217,11 +217,11 @@ private fun StoryPage(
         StoryContent(
             storyChild = child,
             isPaused = isPaused,
-            modifier = imageModifier,
-            isReady = {
-            },
+            modifier = actionsModifier,
             content = content
-        )
+        ) {
+            isPaused = it
+        }
 
         StoryProgress(
             modifier = Modifier
@@ -337,9 +337,9 @@ private fun StoryProgress(
 private fun StoryContent(
     storyChild: StoryChild,
     isPaused: Boolean,
-    isReady: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable (StoryChild) -> Unit
+    content: @Composable (StoryChild) -> Unit,
+    playChanged: (pause: Boolean) -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -349,10 +349,10 @@ private fun StoryContent(
     ) {
         when (storyChild.storyType) {
             StoryType.VIDEO -> {
-                StoryVideo(storyChild.source, isPaused, isReady)
+                StoryVideo(storyChild.source, isPaused, playChanged)
             }
             StoryType.IMAGE -> {
-                StoryImage(storyChild.source, isPaused, isReady)
+                StoryImage(storyChild.source, isPaused, playChanged)
             }
         }
         content(storyChild)
@@ -360,7 +360,11 @@ private fun StoryContent(
 }
 
 @Composable
-private fun StoryImage(sourceUrl: String, isPlay: Boolean = false, changePlay: (Boolean) -> Unit) {
+private fun StoryImage(
+    sourceUrl: String,
+    isPaused: Boolean = true,
+    playChanged: (isPaused: Boolean) -> Unit
+) {
 
     /* Image(
          painter = painterResource(id = R.drawable),
@@ -372,12 +376,17 @@ private fun StoryImage(sourceUrl: String, isPlay: Boolean = false, changePlay: (
 }
 
 @Composable
-private fun StoryVideo(sourceUrl: String, isPlay: Boolean = false, changePlay: (Boolean) -> Unit) {
+private fun StoryVideo(
+    sourceUrl: String,
+    isPaused: Boolean = true,
+    playChanged: (isPaused: Boolean) -> Unit
+) {
     val context = LocalContext.current
     val playUrl = Uri.parse(sourceUrl)
     val currentUrl: MutableState<Uri?> = remember {
         mutableStateOf(null)
     }
+    var isError = false
     val dataSourceFactory: DataSource.Factory = remember {
         DefaultDataSourceFactory(
             context,
@@ -385,35 +394,48 @@ private fun StoryVideo(sourceUrl: String, isPlay: Boolean = false, changePlay: (
         )
     }
     val source = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(playUrl)
+    val exoPlayer = remember {
+        SimpleExoPlayer.Builder(context).build().apply {
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: ExoPlaybackException) {
+                    super.onPlayerError(error)
+                    isError = true
+                    playChanged(true)
+                }
 
-    val exoPlayer = remember { SimpleExoPlayer.Builder(context).build() }
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    super.onIsPlayingChanged(isPlaying)
+                    if (isPlaying) {
+                        isError = false
+                    }
+                    playChanged(!isPlaying)
+                }
+
+                override fun onIsLoadingChanged(isLoading: Boolean) {
+                    super.onIsLoadingChanged(isLoading)
+                    if (!isError) {
+                        playChanged(isLoading)
+                    }
+
+                }
+            })
+
+            videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+            repeatMode = Player.REPEAT_MODE_ONE
+            // playWhenReady = true
+        }
+    }
+
     if (currentUrl.value != playUrl) {
         currentUrl.value = playUrl
         exoPlayer.stop(true)
         exoPlayer.prepare(source)
     }
-    if (isPlay) {
+    if (isPaused) {
         exoPlayer.pause()
     } else {
         exoPlayer.play()
     }
-    exoPlayer.addListener(object : Player.Listener {
-        override fun onPlayerError(error: ExoPlaybackException) {
-            super.onPlayerError(error)
-            changePlay(false)
-        }
-
-        override fun onIsLoadingChanged(isLoading: Boolean) {
-            super.onIsLoadingChanged(isLoading)
-            if (!isLoading) {
-                changePlay(true)
-            } else {
-                changePlay(false)
-            }
-        }
-    })
-    exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
-    exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
 
     DisposableEffect(AndroidView(factory = {
         PlayerView(context).apply {
