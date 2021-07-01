@@ -49,6 +49,7 @@ android {
 dependencies {
 
     implementation project(":data")
+    implementation project(":libs:storypager")
     implementation 'androidx.core:core-ktx:1.5.0'
     implementation 'androidx.appcompat:appcompat:1.3.0'
     implementation 'com.google.android.material:material:1.3.0'
@@ -61,7 +62,7 @@ dependencies {
     implementation 'androidx.activity:activity-compose:1.3.0-SNAPSHOT'
     implementation "androidx.compose.ui:ui:1.0.0-beta09"
     implementation "androidx.compose.ui:ui-tooling:1.0.0-beta09"
-    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.material:material:1.0.0-beta09"
     implementation "androidx.navigation:navigation-compose:2.4.0-SNAPSHOT"
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0-alpha08"
 
@@ -89,13 +90,15 @@ dependencies {
     //imageloading
     // Misc libs
     def accompanist = "0.12.0"
-    implementation "com.google.accompanist:accompanist-insets:$accompanist"
+    implementation "com.google.accompanist:accompanist-pager:$accompanist"
+    implementation "com.google.accompanist:accompanist-pager-indicators:$accompanist"
+
+
     implementation "com.google.accompanist:accompanist-coil:$accompanist"
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist"
     implementation "com.google.accompanist:accompanist-placeholder-material:$accompanist"
     implementation "com.google.accompanist:accompanist-swiperefresh:$accompanist"
-    implementation "com.google.accompanist:accompanist-pager:$accompanist"
-    implementation "com.google.accompanist:accompanist-pager-indicators:$accompanist"
+    implementation "com.google.accompanist:accompanist-insets:$accompanist"
 
     //maps
     implementation "com.google.maps.android:maps-v3-ktx:2.2.0"

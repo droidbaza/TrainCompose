@@ -1,4 +1,4 @@
-package com.droidbaza.traincompose.components.stories
+package com.droidbaza.storypager
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -19,10 +19,10 @@ class Story(
     var active: MutableState<Boolean> = mutableStateOf(false)
 )
 
- class StoryChild(
-    val storyType: StoryType,
-    val source: String,
-    var duration: Int = 15_000,
-    var position: Int = 0,
-    var parentPage: Int = 0
+class StoryChild(
+     val storyType: StoryType,
+     val source: String,
+     var duration: Int = 15_000,
+     var position: Int = 0,
+     var parentPage: Int = 0
 )

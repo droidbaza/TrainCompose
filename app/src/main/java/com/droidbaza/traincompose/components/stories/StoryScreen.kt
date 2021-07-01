@@ -13,21 +13,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.droidbaza.storypager.*
 import com.google.accompanist.pager.ExperimentalPagerApi
 
 @ExperimentalPagerApi
 @Composable
 fun StoryScreen(finish: () -> Unit) {
     val childs = listOf(
-        StoryChild(StoryType.VIDEO, "food.mp4"),
-        StoryChild(StoryType.IMAGE, "food.mp4"),
-        StoryChild(StoryType.IMAGE, "castle.mp4"),
-        StoryChild(StoryType.VIDEO, "food.mp4"),
-        StoryChild(StoryType.IMAGE, "food.mp4"),
-        StoryChild(StoryType.VIDEO, "food.mp4"),
-        StoryChild(StoryType.IMAGE, "food.mp4"),
-        StoryChild(StoryType.IMAGE, "castle.mp4"),
-        StoryChild(StoryType.VIDEO, "food.mp4"),
+        StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
+        StoryChild(StoryType.IMAGE, "asset:///food.mp4"),
+        StoryChild(StoryType.IMAGE, "asset:///castle.mp4"),
+        StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
+        StoryChild(StoryType.IMAGE, "asset:///food.mp4"),
+        StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
+        StoryChild(StoryType.IMAGE, "asset:///food.mp4"),
+        StoryChild(StoryType.IMAGE, "asset:///castle.mp4"),
+        StoryChild(StoryType.VIDEO, "asset:///food.mp4"),
     )
     childs.forEachIndexed { index, storyChild -> storyChild.position = index }
     val items = remember {
