@@ -81,7 +81,7 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     val next: () -> Unit = {
         if (currentPageStete.value + 1 < pages.size) {
             // story.value = pages[currentPage + 1]
-            msg("next Page ${currentPageStete.value + 1} from$currentPageStete.value")
+           // msg("next Page ${currentPageStete.value + 1} from$currentPageStete.value")
             //    currentStory.value.isResumed.value = false
             //  if(currentPage==currentPageStete.value)return@MyInstagramScreen
             scope.launch {
@@ -94,7 +94,7 @@ fun StoriesScreen(finish: () -> Unit = {}) {
 
     val back: () -> Unit = {
         if (currentPageStete.value - 1 >= 0) {
-            msg("back Page ${currentPageStete.value - 1} from ${currentPageStete.value}")
+            //msg("back Page ${currentPageStete.value - 1} from ${currentPageStete.value}")
             //   currentStory.value.isResumed.value = false
             //if(currentPage==currentPageStete.value)return@MyInstagramScreen
             scope.launch {
@@ -129,7 +129,7 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             currentPageStete.value = page
-            msg("launch effect select page $page")
+          //  msg("launch effect select page $page")
             pages.forEachIndexed { index, story ->
                 if (!story.isResumed.value && index == page) {
                     story.isResumed.value = true

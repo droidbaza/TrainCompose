@@ -60,58 +60,45 @@ fun MyInstagramScreen(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { offset ->
-                        pressTime = System.currentTimeMillis()
-                        //msg("TAP TRIGGER")
-                        val position =
-                            if (offset.x < constraints.maxWidth / 2) {
-                                max(-1, currentStep - 1)
-                            } else {
-                                min(stepCount, currentStep + 1)
-                            }
-                        when {
-                            position < 0 -> {
-                                isReset = true
-                                currentStep = 0
-                                status = "on stop"
-                                back()
-                                msg("START RESET TRIGGER")
-                            }
-                            position == stepCount -> {
-                                msg("START TRIGGER")
-                                currentStep = position - 1
-                                isSkip = true
-                                isReset = false
-                                next()
-                            }
-                            else -> {
-                                msg("START ELSE TRIGGER")
-                                currentStep = position
-                                isPaused = false
-                                isReset = false
-                                isSkip = false
-                                status = "in progress"
+                        val time = (System.currentTimeMillis() - pressTime)
+                        if(time<300){
+                            val position =
+                                if (offset.x < constraints.maxWidth / 2) {
+                                    max(-1, currentStep - 1)
+                                } else {
+                                    min(stepCount, currentStep + 1)
+                                }
+                            when {
+                                position < 0 -> {
+                                    isReset = true
+                                    currentStep = 0
+                                    status = "on stop"
+                                }
+                                position == stepCount -> {
+                                    currentStep = position - 1
+                                    isSkip = true
+                                    isReset = false
+                                }
+                                else -> {
+                                    currentStep = position
+                                    isPaused = false
+                                    isReset = false
+                                    isSkip = false
+                                }
                             }
                         }
                     },
                     onPress = {
-                        /* val time = (System.currentTimeMillis() - pressTime) / 1000000000
-                          msg("time is $time")
-                          if (time > 2000) {*/
-                        //  msg("PRESSS TRIGGER")
+                        pressTime = System.currentTimeMillis()
+                        msg("PRESS TRIGGER")
                         try {
-                            //      isPaused = true
+                            isPaused = true
                             awaitRelease()
                         } finally {
-                            //  isPaused = false
-                            // isReset = false
-                            // isSkip = false
+                            isPaused = false
+                            pressTime = System.currentTimeMillis()
                         }
-
                     },
-                    onLongPress = {
-                        // must be here to avoid call onTap
-                        // for play/pause behavior
-                    }
                 )
             }
         val child = story.items[currentStep]
@@ -133,20 +120,12 @@ fun MyInstagramScreen(
             },
             isReset = isReset,
             isPaused = isPaused,
-            onComplete = {
-                msg("completed ${story.position}")
-                //   msg("oncomplete story ${story.page}")
-                // isPaused = true
-                //currentStep = stepCount-2
-                status = "complete"
-                //isPaused = true
-
-                next()
-            },
+            onComplete = next,
             savePosition = {
                 story.position = it
             },
-            isSkip = isSkip
+            isSkip = isSkip,
+            goBack = back
         )
     }
 }
@@ -165,6 +144,7 @@ fun MyInstagramProgressIndicator(
     savePosition: (Int) -> Unit,
     onStepChanged: (Int) -> Unit,
     onComplete: () -> Unit,
+    goBack: () -> Unit,
     isPaused: Boolean = false
 ) {
     var currentStepState by remember(currentStep) {
@@ -203,20 +183,20 @@ fun MyInstagramProgressIndicator(
                 progress.animateTo(0f)
                 currentStepState = 0
                 savePosition(currentStepState)
+                goBack()
             }
             isSkip -> {
                 msg("SKIP PRESSED PAGE$page step $currentStepState")
                 currentStepState = stepCount - 1
                 savePosition(currentStepState)
-                progress.snapTo(0f)
+                progress.animateTo(1f)
                 progress.stop()
-                //   onComplete()
+                onComplete()
             }
             else -> {
                 if (progress.value == 1f) {
                     progress.animateTo(0f)
                 }
-                msg("RESUME PAGE$page step $currentStepState")
                 for (i in currentStep until stepCount) {
 
                     progress.animateTo(
@@ -229,7 +209,7 @@ fun MyInstagramProgressIndicator(
                         )
                     )
                     if (currentStepState + 1 <= stepCount - 1) {
-                        progress.snapTo(0f)
+                        progress.animateTo(0f)
                         currentStepState += 1
                         savePosition(currentStepState)
                         onStepChanged(currentStepState)
