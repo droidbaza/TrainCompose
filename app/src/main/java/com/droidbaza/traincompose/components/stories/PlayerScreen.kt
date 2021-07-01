@@ -1,17 +1,9 @@
 package com.droidbaza.traincompose.components.stories
 
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.runtime.Composable
-
 import android.net.Uri
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -28,8 +20,9 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 
 @Composable
-fun VideoPlayer(uri: String,isPlay:Boolean = false,changePlay:(Boolean)->Unit) {
+fun VideoPlayer(sourceUrl: String, isPlay: Boolean = false, changePlay: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val playUrl = Uri.parse("asset:///$sourceUrl")
 
     val exoPlayer = remember {
         SimpleExoPlayer.Builder(context)
@@ -41,7 +34,7 @@ fun VideoPlayer(uri: String,isPlay:Boolean = false,changePlay:(Boolean)->Unit) {
                 )
 
                 val source = ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(Uri.parse(uri))
+                    .createMediaSource(playUrl)
 
                 this.prepare(source)
             }
@@ -60,7 +53,7 @@ fun VideoPlayer(uri: String,isPlay:Boolean = false,changePlay:(Boolean)->Unit) {
             }
         }
     })
-    exoPlayer.playWhenReady = isPlay
+    exoPlayer.playWhenReady = !isPlay
     exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
     exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
 

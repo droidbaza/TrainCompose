@@ -1,30 +1,19 @@
 package com.droidbaza.traincompose.components.stories
 
-import android.os.Bundle
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.droidbaza.traincompose.R
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import com.google.android.libraries.maps.MapView
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -69,58 +58,65 @@ fun StoriesScreen(finish: () -> Unit = {}) {
         }
     }
     val currentStory = remember { mutableStateOf(pages[0]) }
-    val currentPage = remember { mutableStateOf(0) }
+    val currentPageStete = remember { mutableStateOf(0) }
     val pagerState = rememberPagerState(pageCount = pages.size, initialOffscreenLimit = 1)
     val scope = rememberCoroutineScope()
 
     val lifecycleScreen = rememberLifeCycleScreen()
     val isPause:MutableState<Boolean> = lifecycleScreen.stateResume
-    if(!isPause.value){
+    if (!isPause.value) {
         currentStory.value.apply {
-            if(isResumed.value){
-                isResumed.value = false
+            if (isResumed.value) {
+                //  isResumed.value = false
             }
         }
-    }else{
+    } else {
         currentStory.value.apply {
-            if(!isResumed.value){
-                isResumed.value = true
+            if (!isResumed.value) {
+                //  isResumed.value = true
             }
         }
     }
 
+    val next: () -> Unit = {
+        if (currentPageStete.value + 1 < pages.size) {
+            // story.value = pages[currentPage + 1]
+            msg("next Page ${currentPageStete.value + 1} from$currentPageStete.value")
+            //    currentStory.value.isResumed.value = false
+            //  if(currentPage==currentPageStete.value)return@MyInstagramScreen
+            scope.launch {
+                pagerState.scrollToPage(currentPageStete.value + 1)
+            }
+        } else {
+            finish()
+        }
+    }
+
+    val back: () -> Unit = {
+        if (currentPageStete.value - 1 >= 0) {
+            msg("back Page ${currentPageStete.value - 1} from ${currentPageStete.value}")
+            //   currentStory.value.isResumed.value = false
+            //if(currentPage==currentPageStete.value)return@MyInstagramScreen
+            scope.launch {
+                pagerState.scrollToPage(currentPageStete.value - 1)
+            }
+        } else {
+            finish()
+        }
+    }
 
     Box(contentAlignment = Alignment.Center) {
         HorizontalPager(
             state = pagerState
         ) { page ->
             MyInstagramScreen(
-                currentStory.value,
-                next = {
-                    if (currentPage.value + 1 < pages.size) {
-                        // story.value = pages[currentPage + 1]
-                        msg("next Page ${currentPage.value + 1}")
-                        scope.launch {
-                            pagerState.scrollToPage(currentPage.value + 1)
-                        }
-                    } else {
-                        finish()
-                    }
-                },
-                back = {
-                    if (currentPage.value - 1 >= 0) {
-                        msg("back Page ${currentPage.value - 1}")
-                        scope.launch {
-                            pagerState.scrollToPage(currentPage.value - 1)
-                        }
-                    } else {
-                        finish()
-                    }
-                }
+                pages[page],
+                next = next,
+                back = back
             )
         }
         Text(
-            text = "${currentPage.value}|${pagerState.pageCount}",
+            text = "${currentPageStete.value}|${pagerState.pageCount}",
             modifier = Modifier
                 .align(
                     Alignment.BottomCenter
@@ -130,9 +126,9 @@ fun StoriesScreen(finish: () -> Unit = {}) {
         )
     }
 
-    LaunchedEffect(pagerState, pages, currentStory, currentPage) {
+    LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            currentPage.value = page
+            currentPageStete.value = page
             msg("launch effect select page $page")
             pages.forEachIndexed { index, story ->
                 if (!story.isResumed.value && index == page) {
@@ -150,158 +146,6 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     }
 }
 
-@Composable
-fun StoriesPage(
-    modelStory: Story,
-    isReady: Boolean = false,
-    isRunning: Boolean = false,
-    statePlaying: (isPaused: Boolean) -> Unit = {},
-    previousStory: () -> Unit = {},
-    nextStory: () -> Unit = {},
-    modifier: Modifier = Modifier
-        .fillMaxWidth()
-        .padding(24.dp),
-    indicatorWeight: Float = 1f,
-    indicatorPadding: Dp = 2.dp,
-    storyDuration: Int = 4_000,
-) {
-    val items = modelStory.items
-    val count = items.size
-    val position = modelStory.position
-    val story = items[position]
-
-    var isPaused by remember {
-        mutableStateOf(true)
-    }
-    isPaused = !isRunning
-    if (!isPaused && !isReady) {
-        isPaused = true
-    }
-
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val boxModifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { offset ->
-                        if (offset.x < constraints.maxWidth / 2) {
-                            if (modelStory.position - 1 >= 0) {
-                                modelStory.position = modelStory.position - 1
-                            } else {
-                                previousStory()
-                            }
-                        } else {
-                            if (modelStory.position + 1 < count) {
-                                modelStory.position = modelStory.position + 1
-                            } else {
-                                nextStory()
-                            }
-                        }
-                    },
-                    onPress = {
-                        try {
-                            statePlaying(true)
-                            awaitRelease()
-                        } finally {
-                            statePlaying(false)
-                        }
-                    }
-                )
-            }
-
-        StoryProgress(
-            modifier = modifier,
-            indicatorWeight = indicatorWeight,
-            indicatorPadding = indicatorPadding,
-            stepCount = count,
-            stepDuration = storyDuration,
-            backgroundColor = Color.LightGray,
-            color = Color.Blue,
-            currentPosition = modelStory.position,
-            positionChanged = {
-                modelStory.position = it
-            },
-            isPaused = isPaused,
-            progressComplete = { nextStory() }
-        )
-        Box(modifier = boxModifier) {
-            when (story.storyType) {
-                StoryType.IMAGE -> {
-                    Text(text = "this is image position is $position")
-                }
-                else -> {
-                    Text(text = "this is video position is $position")
-                }
-            }
-        }
-    }
-
-}
-
-@Composable
-fun StoryProgress(
-    modifier: Modifier = Modifier,
-    indicatorWeight: Float,
-    indicatorPadding: Dp,
-    stepCount: Int,
-    stepDuration: Int,
-    backgroundColor: Color,
-    color: Color,
-    currentPosition: Int,
-    positionChanged: (Int) -> Unit,
-    progressComplete: () -> Unit,
-    isPaused: Boolean = false
-) {
-    var currentStepState by remember(currentPosition) {
-        mutableStateOf(currentPosition)
-    }
-    val progress = remember(currentPosition) {
-        Animatable(0f)
-    }
-    Row(modifier) {
-        for (i in 0 until stepCount) {
-            val stepProgress = when {
-                i == currentStepState -> progress.value
-                i > currentStepState -> 0f
-                else -> 1f
-            }
-            LinearProgressIndicator(
-                color = color,
-                backgroundColor = backgroundColor,
-                progress = stepProgress,
-                modifier = Modifier
-                    .weight(indicatorWeight)
-                    .padding(indicatorPadding)
-            )
-        }
-    }
-
-    LaunchedEffect(isPaused, currentPosition) {
-        if (isPaused) {
-            progress.stop()
-        } else {
-            for (i in currentPosition until stepCount) {
-                progress.animateTo(
-                    1f,
-                    animationSpec = tween(
-                        durationMillis =
-                        ((1f - progress.value) * stepDuration)
-                            .toInt(),
-                        easing = LinearEasing
-                    )
-                )
-
-                if (currentStepState + 1 <= stepCount - 1) {
-                    progress.snapTo(0f)
-                    currentStepState += 1
-                    positionChanged(currentStepState)
-                } else {
-                    progressComplete()
-                }
-            }
-        }
-    }
-}
 
 class LifecycleScreen(val stateResume:MutableState<Boolean> = mutableStateOf(true))
 

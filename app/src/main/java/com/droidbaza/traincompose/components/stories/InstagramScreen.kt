@@ -48,6 +48,8 @@ fun MyInstagramScreen(
         msg("RESUMED ${story.page}")
         currentStep = story.position
         isPaused = false
+        isReset = false
+        isSkip = false
         //isSkip = false
     }
 
@@ -68,18 +70,18 @@ fun MyInstagramScreen(
                             }
                         when {
                             position < 0 -> {
-                                currentStep = 0
                                 isReset = true
+                                currentStep = 0
                                 status = "on stop"
+                                back()
                                 msg("START RESET TRIGGER")
-                                isSkip = false
-
                             }
                             position == stepCount -> {
                                 msg("START TRIGGER")
                                 currentStep = position - 1
                                 isSkip = true
                                 isReset = false
+                                next()
                             }
                             else -> {
                                 msg("START ELSE TRIGGER")
@@ -97,10 +99,10 @@ fun MyInstagramScreen(
                           if (time > 2000) {*/
                         //  msg("PRESSS TRIGGER")
                         try {
-                            isPaused = true
+                            //      isPaused = true
                             awaitRelease()
                         } finally {
-                            isPaused = false
+                            //  isPaused = false
                             // isReset = false
                             // isSkip = false
                         }
@@ -114,9 +116,6 @@ fun MyInstagramScreen(
             }
         val child = story.items[currentStep]
         Box(modifier = imageModifier) {
-            VideoPlayer(uri = child.source,isPaused) {
-                isPaused = !it
-            }
             Text(text = " page ${story.page} step ${currentStep + 1} time ${System.currentTimeMillis() / 1000} status ${status}")
         }
         MyInstagramProgressIndicator(
@@ -131,13 +130,6 @@ fun MyInstagramScreen(
             currentStep = currentStep,
             onStepChanged = {
                 currentStep = it
-                if (currentStep == 0) {
-                    status = "is start position"
-                    msg("TRY GO START")
-                    back()
-                } else {
-                    status = "in progress"
-                }
             },
             isReset = isReset,
             isPaused = isPaused,
@@ -147,12 +139,13 @@ fun MyInstagramScreen(
                 // isPaused = true
                 //currentStep = stepCount-2
                 status = "complete"
+                //isPaused = true
+
                 next()
             },
             savePosition = {
                 story.position = it
             },
-            onBack = back,
             isSkip = isSkip
         )
     }
@@ -172,7 +165,6 @@ fun MyInstagramProgressIndicator(
     savePosition: (Int) -> Unit,
     onStepChanged: (Int) -> Unit,
     onComplete: () -> Unit,
-    onBack: () -> Unit,
     isPaused: Boolean = false
 ) {
     var currentStepState by remember(currentStep) {
@@ -208,21 +200,25 @@ fun MyInstagramProgressIndicator(
             }
             isReset -> {
                 msg("RESET PRESSED PAGE$page step $currentStepState")
+                progress.animateTo(0f)
                 currentStepState = 0
                 savePosition(currentStepState)
-                progress.snapTo(0f)
-                progress.stop()
-                onStepChanged(0)
             }
             isSkip -> {
                 msg("SKIP PRESSED PAGE$page step $currentStepState")
                 currentStepState = stepCount - 1
                 savePosition(currentStepState)
-                onComplete()
+                progress.snapTo(0f)
+                progress.stop()
+                //   onComplete()
             }
             else -> {
+                if (progress.value == 1f) {
+                    progress.animateTo(0f)
+                }
                 msg("RESUME PAGE$page step $currentStepState")
                 for (i in currentStep until stepCount) {
+
                     progress.animateTo(
                         1f,
                         animationSpec = tween(
@@ -238,202 +234,17 @@ fun MyInstagramProgressIndicator(
                         savePosition(currentStepState)
                         onStepChanged(currentStepState)
                     } else {
-                        currentStepState = stepCount - 1
-                        savePosition(currentStepState)
-                        onComplete()
+                        if (progress.value == 1f) {
+                            currentStepState = stepCount - 1
+                            savePosition(currentStepState)
+                            onComplete()
+                        }
                     }
                 }
             }
         }
     }
 }
-/*@Composable
-fun MyInstagramScreen(story: Story,
-                      isReady: Boolean = false,
-                      goNext:()->Unit,
-                      goPrevious:()->Unit
-) {
-    val items = remember { story.items }
-    val stepCount = items.count()
 
-    var currentStep by remember {
-        mutableStateOf(story.position)
-    }
-    story.position = currentStep
-
-    var isPaused by remember {
-        mutableStateOf(false)
-    }
-    var isSkipped by remember {
-        mutableStateOf(false)
-    }
-    var isReset by remember {
-        mutableStateOf(false)
-    }
-    var isClear by remember {
-        mutableStateOf(false)
-    }
-    if (!isReady) {
-        // isPaused = true
-    }
-
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val imageModifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { offset ->
-                        currentStep =
-                            if (offset.x < constraints.maxWidth / 2) {
-                                max(-1, currentStep - 1)
-                            } else {
-                                min(stepCount, currentStep + 1)
-                            }
-                        when {
-                            currentStep < 0 -> {
-                                currentStep = 0
-                                isReset = true
-                                // isSkipped = false
-                            }
-                            currentStep >= stepCount -> {
-                                currentStep = stepCount - 1
-                                //isReset = false
-                                isSkipped = true
-                            }
-                            else -> {
-                                isReset = false
-                                isSkipped = false
-                            }
-                        }
-                        isClear = if (isClear) {
-                            false
-                        }else{
-                            story.position == items.size - 1
-                        }
-                        story.position = currentStep
-                        // isPaused = false
-                    },
-                    onPress = {
-                        try {
-                            //  isPaused = true
-                            awaitRelease()
-                        } finally {
-                            // isPaused = false
-                        }
-                    },
-                    onLongPress = {
-                        // must be here to avoid call onTap
-                        // for play/pause behavior
-                    }
-                )
-            }
-
-        Box(modifier = imageModifier.fillMaxSize()){
-            Text(text = "story ${story.position} current $currentStep")
-        }
-
-        StoryProgressIndicator(
-            size = stepCount,
-            position = currentStep,
-            isPaused = isPaused,
-            isSkipped = isSkipped,
-            isReset = isReset,
-            onComplete = goNext,
-            isClear = isClear,
-            goNextPosition = {
-                currentStep = it
-                //isPaused = false
-                story.position = currentStep
-            },
-            goPrevious = goPrevious
-        )
-    }
-}
-
-@Composable
-fun StoryProgressIndicator(
-    size: Int,
-    position: Int,
-    goPrevious: () -> Unit,
-    goNextPosition: (position: Int) -> Unit,
-    onComplete: () -> Unit,
-    isPaused: Boolean = false,
-    isReset: Boolean = false,
-    isSkipped: Boolean = false,
-    isClear: Boolean = false,
-    modifier: Modifier = Modifier
-        .fillMaxWidth()
-        .padding(24.dp),
-    time: Int = 3_000,
-    unselectedColor: Color = Color.LightGray,
-    selectedColor: Color = Color.Blue,
-) {
-
-    var statePosition by remember(position) { mutableStateOf(position) }
-    val stateProgress = remember(position) { Animatable(0f) }
-
-    Row(modifier) {
-        (0 until size).forEach {
-
-            var progress = 0f
-            when {
-                it == statePosition && !isClear -> progress = stateProgress.value
-                it == statePosition && isClear -> progress = 0f
-                it > statePosition -> progress = 0f
-                else -> {
-                    progress = 1f
-
-                }
-            }
-
-            LinearProgressIndicator(
-                color = selectedColor,
-                backgroundColor = unselectedColor,
-                progress = progress,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(2.dp)
-            )
-        }
-    }
-
-    LaunchedEffect(isPaused, position, isSkipped, isReset, isClear) {
-        when {
-            isPaused -> stateProgress.stop()
-            isSkipped -> {
-                stateProgress.animateTo(1f)
-                stateProgress.stop()
-                statePosition = size - 1
-                onComplete()
-            }
-            isClear -> {
-                stateProgress.animateTo(0f)
-            }
-            isReset -> {
-                stateProgress.animateTo(0f)
-                //  stateProgress.stop()
-                statePosition -= 1
-                goPrevious()
-            }
-            else -> {
-                (position until size).onEach {
-                    val duration = ((1f - stateProgress.value) * time).toInt()
-                    stateProgress.animateTo(
-                        1f,
-                        animationSpec = tween(durationMillis = duration, easing = LinearEasing)
-                    )
-                    if (statePosition + 1 < size - 1) {
-                        stateProgress.snapTo(0f)
-                        statePosition += 1
-                        goNextPosition(statePosition)
-
-                    } else {
-                        onComplete()
-                    }
-                }
-            }
-        }
-    }
-}*/
 
 
