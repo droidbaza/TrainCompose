@@ -1,13 +1,9 @@
 package com.droidbaza.traincompose.components.stories
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -16,7 +12,6 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 enum class StoryType {
     IMAGE, VIDEO
@@ -30,30 +25,29 @@ data class Story(
     var isResumed: MutableState<Boolean> = mutableStateOf(false)
 )
 
-data class StoryChild(val storyType: StoryType, val source: String, var duration: Int = 15_000)
+data class StoryChild(
+    val storyType: StoryType,
+    val source: String,
+    var duration: Int = 15_000,
+    var position: Int = 0,
+    var parentPage: Int = 0
+)
 
 @ExperimentalPagerApi
 @Composable
 fun StoriesScreen(finish: () -> Unit = {}) {
     val childs = listOf(
-        StoryChild(StoryType.IMAGE, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" ),
-        StoryChild(StoryType.IMAGE, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"),
-        StoryChild(StoryType.VIDEO, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"),
-        StoryChild(StoryType.IMAGE, "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"),
+        StoryChild(StoryType.IMAGE, "food.mp4"),
+        StoryChild(StoryType.IMAGE, "castle.mp4"),
+        StoryChild(StoryType.VIDEO, "food.mp4"),
+        StoryChild(StoryType.IMAGE, "food.mp4"),
     )
+    childs.forEachIndexed { index, storyChild -> storyChild.position = index }
     val pages = remember {
         (0..100).mapIndexed { index, _ ->
             Story(
                 page = index,
-                listOf(
-                    childs.get(Random.nextInt(0, childs.size)),
-                    childs.get(Random.nextInt(0, childs.size)),
-                    childs.get(Random.nextInt(0, childs.size)),
-                    childs.get(Random.nextInt(0, childs.size)),
-                    childs.get(Random.nextInt(0, childs.size)),
-                    childs.get(Random.nextInt(0, childs.size)),
-                    childs.get(Random.nextInt(0, childs.size))
-                )
+                items = childs
             )
         }
     }
@@ -63,29 +57,26 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
 
     val lifecycleScreen = rememberLifeCycleScreen()
-    val isPause:MutableState<Boolean> = lifecycleScreen.stateResume
-    if (!isPause.value) {
+    lifecycleScreen.stateResume.value.let { resumed ->
         currentStory.value.apply {
             if (isResumed.value) {
-                //  isResumed.value = false
-            }
-        }
-    } else {
-        currentStory.value.apply {
-            if (!isResumed.value) {
-                //  isResumed.value = true
+                if (!resumed) {
+                    isResumed.value = false
+                }
+            } else {
+                if (resumed) {
+                    isResumed.value = true
+                }
+
             }
         }
     }
 
     val next: () -> Unit = {
-        if (currentPageStete.value + 1 < pages.size) {
-            // story.value = pages[currentPage + 1]
-           // msg("next Page ${currentPageStete.value + 1} from$currentPageStete.value")
-            //    currentStory.value.isResumed.value = false
-            //  if(currentPage==currentPageStete.value)return@MyInstagramScreen
+        val target = currentPageStete.value + 1
+        if (target < pages.size) {
             scope.launch {
-                pagerState.scrollToPage(currentPageStete.value + 1)
+                pagerState.scrollToPage(target)
             }
         } else {
             finish()
@@ -93,19 +84,17 @@ fun StoriesScreen(finish: () -> Unit = {}) {
     }
 
     val back: () -> Unit = {
-        if (currentPageStete.value - 1 >= 0) {
-            //msg("back Page ${currentPageStete.value - 1} from ${currentPageStete.value}")
-            //   currentStory.value.isResumed.value = false
-            //if(currentPage==currentPageStete.value)return@MyInstagramScreen
+        val target = currentPageStete.value - 1
+        if (target >= 0) {
             scope.launch {
-                pagerState.scrollToPage(currentPageStete.value - 1)
+                pagerState.scrollToPage(target)
             }
         } else {
             finish()
         }
     }
 
-    Box(contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             state = pagerState
         ) { page ->
@@ -115,29 +104,21 @@ fun StoriesScreen(finish: () -> Unit = {}) {
                 back = back
             )
         }
-        Text(
-            text = "${currentPageStete.value}|${pagerState.pageCount}",
-            modifier = Modifier
-                .align(
-                    Alignment.BottomCenter
-                )
-                .fillMaxWidth()
-                .background(color = Color.White),
-        )
     }
 
     LaunchedEffect(pagerState) {
+
         snapshotFlow { pagerState.currentPage }.collect { page ->
             currentPageStete.value = page
           //  msg("launch effect select page $page")
             pages.forEachIndexed { index, story ->
                 if (!story.isResumed.value && index == page) {
                     story.isResumed.value = true
-                    msg("CHANGE FROM PAUSE TO RESUME № ${story.page} :${story.isResumed.value}")
+                    //msg("CHANGE FROM PAUSE TO RESUME № ${story.page} :${story.isResumed.value}")
                 } else {
                     if (story.isResumed.value) {
                         story.isResumed.value = false
-                        msg("CHANGE FROM RESUME TO PAUSE № ${story.page} :${story.isResumed.value}")
+                        // msg("CHANGE FROM RESUME TO PAUSE № ${story.page} :${story.isResumed.value}")
                     }
                 }
             }
@@ -169,12 +150,7 @@ fun rememberLifeCycleScreen(): LifecycleScreen {
 private fun rememberLifecycleObserver(lifecycleScreen: LifecycleScreen): LifecycleEventObserver =
     remember(lifecycleScreen) {
         LifecycleEventObserver { _, event ->
-            val result = when (event) {
-                Lifecycle.Event.ON_START -> true
-                Lifecycle.Event.ON_RESUME -> true
-                else -> false
-            }
-            lifecycleScreen.stateResume.value = result
-
+            lifecycleScreen.stateResume.value = event == Lifecycle.Event.ON_RESUME
         }
     }
+

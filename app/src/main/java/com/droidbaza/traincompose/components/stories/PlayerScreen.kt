@@ -3,9 +3,7 @@ package com.droidbaza.traincompose.components.stories
 import android.net.Uri
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.exoplayer2.C
@@ -23,24 +21,31 @@ import com.google.android.exoplayer2.util.Util
 fun VideoPlayer(sourceUrl: String, isPlay: Boolean = false, changePlay: (Boolean) -> Unit) {
     val context = LocalContext.current
     val playUrl = Uri.parse("asset:///$sourceUrl")
+    val currentUrl: MutableState<Uri?> = remember {
+        mutableStateOf(null)
+    }
+    val dataSourceFactory: DataSource.Factory = remember {
+        DefaultDataSourceFactory(
+            context,
+            Util.getUserAgent(context, context.packageName)
+        )
+    }
+    val source = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(playUrl)
 
-    val exoPlayer = remember {
-        SimpleExoPlayer.Builder(context)
-            .build()
-            .apply {
-                val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-                    context,
-                    Util.getUserAgent(context, context.packageName)
-                )
+    val exoPlayer = remember { SimpleExoPlayer.Builder(context).build() }
 
-                val source = ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(playUrl)
-
-                this.prepare(source)
-            }
+    if (currentUrl.value != playUrl) {
+        currentUrl.value = playUrl
+        exoPlayer.stop(true)
+        exoPlayer.prepare(source)
     }
 
-    exoPlayer.addListener(object :Player.Listener{
+    if (isPlay) {
+        exoPlayer.pause()
+    } else {
+        exoPlayer.play()
+    }
+    exoPlayer.addListener(object : Player.Listener {
         override fun onPlayerError(error: ExoPlaybackException) {
             super.onPlayerError(error)
             changePlay(false)
@@ -48,12 +53,13 @@ fun VideoPlayer(sourceUrl: String, isPlay: Boolean = false, changePlay: (Boolean
 
         override fun onIsLoadingChanged(isLoading: Boolean) {
             super.onIsLoadingChanged(isLoading)
-            if(!isLoading){
-               changePlay(true)
+            if (!isLoading) {
+                changePlay(true)
+            } else {
+                changePlay(false)
             }
         }
     })
-    exoPlayer.playWhenReady = !isPlay
     exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
     exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
 
@@ -71,7 +77,7 @@ fun VideoPlayer(sourceUrl: String, isPlay: Boolean = false, changePlay: (Boolean
         PlayerView(context).apply {
             hideController()
             useController = false
-            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
 
             player = exoPlayer
             layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
