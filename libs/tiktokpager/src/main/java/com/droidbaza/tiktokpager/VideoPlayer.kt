@@ -69,9 +69,9 @@ fun videoPlayer(
                 mediaStatus.isError(true)
                 mediaStatus.isPlaying(false)
             }
-
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
+                mediaStatus.timeProgress(exoPlayer.contentDuration)
                 if (isPlaying) {
                     mediaStatus.isError(false)
                 }
@@ -143,4 +143,5 @@ interface MediaStatus {
     fun isLoading(value: Boolean)
     fun isError(value: Boolean)
     fun isPlaying(value: Boolean)
+    fun timeProgress(duration: Long)
 }
