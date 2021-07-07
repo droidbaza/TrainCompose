@@ -13,6 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:name=".App"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.TrainCompose">
 
         <meta-data android:name="com.google.android.geo.API_KEY"

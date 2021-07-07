@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import com.droidbaza.traincompose.components.MainScreen
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,6 +16,7 @@ class MainActivity : ComponentActivity() {
   //  private val ready: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private var backPressed = 0L
 
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         /*lifecycleScope.launchWhenCreated {

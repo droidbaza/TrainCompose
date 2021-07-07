@@ -2,3 +2,4 @@ rootProject.name = "TrainCompose"
 include ':app'
 include ':data'
 include ':libs:storypager'
+include ':libs:tiktokpager'

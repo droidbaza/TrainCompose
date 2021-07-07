@@ -21,10 +21,12 @@ import com.droidbaza.traincompose.components.Destiny.*
 import com.droidbaza.traincompose.components.map.MapScreen
 import com.droidbaza.traincompose.components.map.rememberMapViewWithLifecycle
 import com.droidbaza.traincompose.components.stories.StoryScreen
+import com.droidbaza.traincompose.components.stories.TikTokScreen
 import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
 import com.droidbaza.traincompose.ui.theme.TrainComposeTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
+@ExperimentalAnimationApi
 @ExperimentalPagerApi
 @Composable
 fun MainScreen(finish: () -> Unit) {
@@ -94,6 +96,7 @@ fun BottomNavigationBar(navController: NavController) {
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalPagerApi
 @Composable
 fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
@@ -127,9 +130,8 @@ fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
             )
         }
         composable(Music.route) {
-            MusicScreen(
-                goBack = router.goBack,
-                goDetails = router.goMusicDetails
+            TikTokScreen(
+                finish = router.goBack
             )
         }
         composable(Movies.route) {

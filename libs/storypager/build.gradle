@@ -51,6 +51,7 @@ dependencies {
     implementation "androidx.compose.material:material:1.0.0-beta09"
 
     def accompanist = "0.12.0"
+    implementation "com.google.accompanist:accompanist-coil:$accompanist"
     implementation "com.google.accompanist:accompanist-pager:$accompanist"
     implementation "com.google.accompanist:accompanist-pager-indicators:$accompanist"
     implementation 'com.google.android.exoplayer:exoplayer:2.14.1'
