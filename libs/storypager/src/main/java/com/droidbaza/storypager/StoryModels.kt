@@ -17,7 +17,25 @@ class Story(
     var position: Int = 0,
     val childCount: Int = items.size,
     var active: MutableState<Boolean> = mutableStateOf(false)
-)
+) {
+    fun onResume() {
+        msg("RESUMED $page")
+        if (!active.value) {
+            active.value = true
+        }
+    }
+
+    fun onPause() {
+        msg("PAUSED $page")
+        if (active.value) {
+            active.value = false
+        }
+    }
+
+    fun isResumed(): Boolean {
+        return active.value
+    }
+}
 
 class StoryChild(
      val storyType: StoryType,
