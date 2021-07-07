@@ -44,7 +44,8 @@ fun TikTokPageItem(item: TikTokModel) {
         }
     }
     val interactionSource = remember { MutableInteractionSource() }
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()) {
         val player = videoPlayer(sourceUrl = item.playUrl, mediaStatus)
         Box(
             Modifier
@@ -84,8 +85,8 @@ fun TikTokPageItem(item: TikTokModel) {
             Icon(Icons.Filled.Delete, "")
         }*/
 
-        DisposableEffect(key1 = item.active.value) {
-            if (item.active.value) {
+        DisposableEffect(key1 = item.isResumed()) {
+            if (item.isResumed()) {
                 player.reset()
                 player.play()
             } else {

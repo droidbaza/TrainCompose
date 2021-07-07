@@ -48,6 +48,7 @@ private fun StoryImage(
     sourceUrl: String,
     playChanged: (isPlaying: Boolean) -> Unit,
 ) {
+
     LaunchedEffect(key1 = sourceUrl) {
         playChanged(false)
     }
@@ -82,6 +83,7 @@ private fun StoryImage(
             }
         }
     }
+
 
 }
 
@@ -150,4 +152,5 @@ private fun StoryVideo(
             }
         }
     }
+
 }

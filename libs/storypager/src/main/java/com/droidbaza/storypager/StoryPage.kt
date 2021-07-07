@@ -30,6 +30,14 @@ internal fun StoryPage(
     val playChanged: (Boolean) -> Unit = {
         isPlaying = it
     }
+    val positionSave: (Int) -> Unit = {
+        item.position = it
+    }
+
+    val positionChange: (Int) -> Unit = {
+        position = it
+    }
+
     var isReset by remember {
         mutableStateOf(false)
     }
@@ -110,16 +118,16 @@ internal fun StoryPage(
         StoryProgress(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(vertical = 24.dp, horizontal = 12.dp),
             size = stepCount,
             durationInMillis = child.duration,
-            backgroundColor = Color.LightGray,
-            activeColor = Color.Blue,
+            backgroundColor = Color.Gray,
+            activeColor = Color.White,
             isReset = isReset,
             isSkip = isSkip,
             position = position,
-            positionSave = { item.position = it },
-            positionChange = { position = it },
+            positionSave = positionSave,
+            positionChange = positionChange,
             nextPage = nextPage,
             backPage = backPage,
             isPaused = !isPlaying

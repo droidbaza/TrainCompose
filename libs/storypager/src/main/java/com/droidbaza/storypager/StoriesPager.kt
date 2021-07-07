@@ -1,7 +1,10 @@
 package com.droidbaza.storypager
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
@@ -67,12 +70,17 @@ fun StoriesPager(
     HorizontalPager(
         state = pagerState
     ) { page ->
-        StoryPage(
-            items[page],
-            nextPage = nextPage,
-            backPage = backPage,
-            content = content
-        )
+
+        Card(shape = RoundedCornerShape(5.dp)) {
+            StoryPage(
+                items[page],
+                nextPage = nextPage,
+                backPage = backPage,
+                content = content
+            )
+
+        }
+
     }
 
     LaunchedEffect(pagerState) {

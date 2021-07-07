@@ -4,10 +4,12 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -40,7 +42,9 @@ internal fun StoryProgress(
     val progress = remember(position) {
         Animatable(0f)
     }
-    Row(modifier) {
+    Row(
+        modifier
+    ) {
         for (i in 0 until size) {
             val progressValue = when {
                 i == statePosition -> progress.value
@@ -53,6 +57,8 @@ internal fun StoryProgress(
                 progress = progressValue,
                 modifier = Modifier
                     .weight(1f)
+                    .height(6.dp)
+                    .alpha(0.8f)
                     .padding(2.dp)
             )
         }
