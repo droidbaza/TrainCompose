@@ -85,14 +85,13 @@ fun videoPlayer(
         }
     }
 
-    LaunchedEffect(sourceUrl, eventListener) {
+    LaunchedEffect(sourceUrl) {
         val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
             context,
             Util.getUserAgent(context, context.packageName)
         )
         val mediaItem = MediaItem.fromUri(sourceUrl)
-        val source =
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+        val source = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
         exoPlayer.prepare(source)
     }
 
