@@ -2,10 +2,7 @@ package com.droidbaza.tiktokpager
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -110,21 +107,8 @@ fun TikTokPager(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(32.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        TabRow(modifier = Modifier.align(Alignment.TopCenter)) {
 
-            Text(text = "Подписки",modifier = Modifier.padding(horizontal = 6.dp))
-            Box(
-                modifier = Modifier
-                    .size(2.dp, 6.dp)
-                    .clip(RectangleShape)
-                    .background(color = Color.LightGray)
-            )
-            Text(text = "Рекомендации",modifier = Modifier.padding(horizontal = 6.dp))
         }
     }
 
