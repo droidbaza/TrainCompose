@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.droidbaza.data.model.Movie
 import com.droidbaza.traincompose.components.home.LazyMovieItems
 import com.droidbaza.traincompose.components.viewmodels.MoviesViewModel
@@ -178,7 +179,11 @@ fun MusicScreenDetails(id: Int, goDetails: (id: Int) -> Unit) {
 
 
 @Composable
-fun MoviesScreen(viewModel: MoviesViewModel,goDetails: (Movie) -> Unit, goBack: () -> Unit) {
+fun MoviesScreen(
+    goDetails: (Movie) -> Unit,
+    goBack: () -> Unit,
+) {
+    val viewModel: MoviesViewModel = hiltViewModel()
     val itemsState = viewModel.itemsState.collectAsState()
     val error = viewModel.errorState.collectAsState()
     val loading = viewModel.loading.collectAsState()

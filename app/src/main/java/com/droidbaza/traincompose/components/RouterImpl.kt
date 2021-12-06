@@ -54,45 +54,57 @@ sealed class Destiny(val route: String, var tag: String = route,val title: Strin
     object Splash : Destiny(route = ROUTE_SPLASH)
     object Stories : Destiny(route = ROUTE_STORIES)
 }
+interface Router{
+    val goMoviesDetails: (arg: Any?) -> Unit
+    val goHomeDetails: (arg: Any?) -> Unit
+    val goBooksDetails: (arg: Any?) -> Unit
+    val goStories: () -> Unit
+    val goProfileDetails: (arg: Any?) -> Unit
+    val goMusicDetails: (arg: Any?) -> Unit
+    val goSplash:()->Unit
+    val goHome:()->Unit
+    val goBack: () -> Unit
+    val goIntro: () -> Unit
+    fun < T : Any> getArgs(tag: String): T?
+}
+class RouterImpl(val navHostController: NavHostController, startDestination: String = ROUTE_HOME):Router {
 
-class Router(val navHostController: NavHostController, startDestination: String = ROUTE_HOME) {
-
-    val goMoviesDetails: (arg: Any?) -> Unit = {
+    override val goMoviesDetails: (arg: Any?) -> Unit = {
         checkArgsAndNavigate(it, Destiny.MoviesDetails)
     }
 
-    val goHomeDetails: (arg: Any?) -> Unit = {
+    override val goHomeDetails: (arg: Any?) -> Unit = {
         checkArgsAndNavigate(it, Destiny.HomeDetails)
     }
 
-    val goBooksDetails: (arg: Any?) -> Unit = {
+    override val goBooksDetails: (arg: Any?) -> Unit = {
         checkArgsAndNavigate(it, Destiny.BooksDetails)
     }
 
-    val goStories: () -> Unit = {
+    override val goStories: () -> Unit = {
         navigate(Destiny.Stories.route)
     }
 
-    val goProfileDetails: (arg: Any?) -> Unit = {
+    override val goProfileDetails: (arg: Any?) -> Unit = {
         checkArgsAndNavigate(it, Destiny.ProfileDetails)
     }
 
-    val goMusicDetails: (arg: Any?) -> Unit = {
+    override val goMusicDetails: (arg: Any?) -> Unit = {
         checkArgsAndNavigate(it, Destiny.MusicDetails)
     }
 
-    val goIntro: () -> Unit = {
+    override val goIntro: () -> Unit = {
         navigate(Destiny.Intro.route, true)
     }
 
-    val goSplash:()->Unit={
+    override val goSplash:()->Unit={
         navigate(Destiny.Splash.route,true)
     }
-    val goHome:()->Unit={
+    override val goHome:()->Unit={
         navigate(Destiny.Home.route,removeFromHistory = true,singleTop = true)
     }
 
-    val goBack: () -> Unit = {
+    override val goBack: () -> Unit = {
         navHostController.apply {
             if (isLifecycleResumed()) {
                 navigateUp()
@@ -133,7 +145,7 @@ class Router(val navHostController: NavHostController, startDestination: String 
         navigate(destiny.route)
     }
 
-    inline fun <reified T : Any> getArgs(tag: String): T? {
+    override fun < T : Any> getArgs(tag: String): T? {
         return try {
             navHostController.previousBackStackEntry?.arguments?.get(tag) as T?
         } catch (ex: Exception) {

@@ -101,9 +101,9 @@ fun BottomNavigationBar(navController: NavController) {
 @Composable
 fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
     val startDestination = Home.route
-    val router = remember(navController) { Router(navController, startDestination) }
+    val router: Router = remember{RouterImpl(navController, startDestination)}
     val mapView = rememberMapViewWithLifecycle()
-    val moviesViewModel = hiltViewModel<MoviesViewModel>()
+        //val moviesViewModel = hiltViewModel<MoviesViewModel>()
 
     NavHost(navController, startDestination = startDestination) {
         composable(Intro.route) {
@@ -136,7 +136,7 @@ fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
         }
         composable(Movies.route) {
             MoviesScreen(
-                moviesViewModel,
+
                 goBack = router.goBack,
                 goDetails = router.goMoviesDetails
             )
@@ -145,10 +145,7 @@ fun AppNavigation(navController: NavHostController, finish: () -> Unit) {
             MapScreen(mapView = mapView)
         }
         composable(Profile.route) {
-            ProfileScreen(
-                goBack = router.goBack,
-                goDetails = router.goProfileDetails
-            )
+            com.droidbaza.traincompose.components.profile.ProfileScreen(profileViewModel = hiltViewModel())
         }
         composable(HomeDetails.route) {
             HomeScreenDetails(
